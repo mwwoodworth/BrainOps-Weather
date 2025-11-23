@@ -1292,4 +1292,9 @@
     <string name="colon_separator" translatable="false">:\u0020</string>
     <string name="dot_separator" translatable="false">\u0020•\u0020</string>
     <string name="parenthesis" translatable="false">%1$s (%2$s)</string>
+    <!-- BrainOps -->
+    <string name="brainops_dashboard">BrainOps Dashboard</string>
+    <string name="brainops_settings">BrainOps Settings</string>
+    <string name="brainops_settings_description">Configure BrainOps endpoints, API key, and tenant for integration.</string>
+    <string name="brainops_action_open_dashboard">Open BrainOps</string>
 </resources>

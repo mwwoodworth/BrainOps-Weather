@@ -15,4 +15,11 @@
         android:icon="@drawable/ic_open_in_new"
         app:showAsAction="never" />
 
+    <item
+        android:id="@+id/action_open_brainops"
+        android:title="@string/brainops_action_open_dashboard"
+        android:orderInCategory="400"
+        android:icon="@drawable/ic_settings"
+        app:showAsAction="never" />
+
 </menu>

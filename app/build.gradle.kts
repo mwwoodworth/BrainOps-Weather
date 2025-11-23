@@ -360,6 +360,7 @@ dependencies {
     implementation(libs.vico.views)
     implementation(libs.adaptiveiconview)
     implementation(libs.activity)
+    implementation(libs.security.crypto)
 
     // utils.
     implementation(libs.suncalc)

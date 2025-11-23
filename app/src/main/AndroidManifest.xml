@@ -571,6 +571,15 @@
 
         </provider>
 
+        <activity
+            android:name=".brainops.ui.BrainOpsDashboardActivity"
+            android:label="@string/brainops_dashboard"
+            android:exported="false" />
+        <activity
+            android:name=".brainops.ui.BrainOpsSettingsActivity"
+            android:label="@string/brainops_settings"
+            android:exported="false" />
+
     </application>
 
 </manifest>
