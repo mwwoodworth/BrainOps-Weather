@@ -41,6 +41,10 @@ class AuthRepository(context: Context) {
         storage.clear()
     }
 
+    fun currentUserEmail(): String? {
+        return supabase.auth.currentUserOrNull()?.email
+    }
+
     fun getAccessToken(): String? {
         val liveToken = supabase.auth.currentSessionOrNull()?.accessToken
         return liveToken ?: storage.loadSession()?.accessToken

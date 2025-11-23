@@ -23,12 +23,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.launch
 import org.breezyweather.brainops.BrainOpsConfigStore
 import org.breezyweather.brainops.FeatureFlags
 import org.breezyweather.brainops.auth.AuthRepository
@@ -45,6 +49,8 @@ class BrainOpsDashboardActivity : ComponentActivity() {
                 factory = BrainOpsViewModel.Factory(config, authRepo)
             )
             val opsImpact by vm.opsImpact.collectAsState()
+            val scope = rememberCoroutineScope()
+            val userEmail = remember { mutableStateOf(authRepo.currentUserEmail()) }
 
             LaunchedEffect(config) {
                 if (FeatureFlags.isBrainOpsEnabled(config)) {
@@ -64,6 +70,31 @@ class BrainOpsDashboardActivity : ComponentActivity() {
                     ) {
                         item {
                             SectionTitle(text = "Weather Overview")
+                        }
+                        item {
+                            GlassCard(
+                                title = "BrainOps Account",
+                                body = userEmail.value?.let { "Signed in as $it" }
+                                    ?: "Not signed in. Use BrainOps Login to authenticate and pull live data."
+                            ) {
+                                val context = LocalContext.current
+                                Button(onClick = {
+                                    context.startActivity(Intent(context, BrainOpsLoginActivity::class.java))
+                                }) {
+                                    Text("BrainOps Login", color = Color.White)
+                                }
+                                Button(
+                                    modifier = Modifier.padding(top = 8.dp),
+                                    onClick = {
+                                        scope.launch {
+                                            authRepo.signOut()
+                                            userEmail.value = null
+                                        }
+                                    }
+                                ) {
+                                    Text("Sign Out", color = Color.White)
+                                }
+                            }
                         }
                         item { GlassCard(title = "Current Conditions", body = "Loaded from weather API when enabled.") }
                         item { GlassCard(title = "Hourly Forecast", body = "Loaded from weather API when enabled.") }
