@@ -579,6 +579,17 @@
             android:name=".brainops.ui.BrainOpsSettingsActivity"
             android:label="@string/brainops_settings"
             android:exported="false" />
+        <activity
+            android:name=".brainops.ui.AuthCallbackActivity"
+            android:exported="true"
+            android:launchMode="singleTask">
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="com.brainops.weather" android:host="auth-callback" />
+            </intent-filter>
+        </activity>
 
     </application>
 

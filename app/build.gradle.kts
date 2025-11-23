@@ -51,6 +51,8 @@ android {
         named("debug") {
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-r${getCommitCount()}"
+            buildConfigField("String", "DEV_API_KEY", "\"brainops_dev_key_2025\"")
+            buildConfigField("String", "DEFAULT_TENANT_ID", "\"51e728c5-94e8-4ae0-8a0a-6a08d1fb3457\"")
         }
         named("release") {
             isShrinkResources = true
@@ -58,6 +60,8 @@ android {
             isDebuggable = false
             isCrunchPngs = false // No need to do that, we already optimized them
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            buildConfigField("String", "DEV_API_KEY", "\"\"")
+            buildConfigField("String", "DEFAULT_TENANT_ID", "\"\"")
         }
     }
 
@@ -361,6 +365,9 @@ dependencies {
     implementation(libs.adaptiveiconview)
     implementation(libs.activity)
     implementation(libs.security.crypto)
+    implementation("io.github.jan-tennert.supabase:postgrest-kt:2.0.0")
+    implementation("io.github.jan-tennert.supabase:gotrue-kt:2.0.0")
+    implementation("io.ktor:ktor-client-android:2.3.7")
 
     // utils.
     implementation(libs.suncalc)

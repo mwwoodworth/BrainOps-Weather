@@ -31,16 +31,18 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import org.breezyweather.brainops.BrainOpsConfigStore
 import org.breezyweather.brainops.FeatureFlags
+import org.breezyweather.brainops.auth.AuthRepository
 
 class BrainOpsDashboardActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         val config = BrainOpsConfigStore(this).loadConfig()
+        val authRepo = AuthRepository(this)
 
         setContent {
             val vm: BrainOpsViewModel = viewModel(
-                factory = BrainOpsViewModel.Factory(config)
+                factory = BrainOpsViewModel.Factory(config, authRepo)
             )
             val opsImpact by vm.opsImpact.collectAsState()
 

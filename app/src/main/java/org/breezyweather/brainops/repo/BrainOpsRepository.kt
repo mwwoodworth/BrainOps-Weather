@@ -5,10 +5,14 @@ import org.breezyweather.brainops.api.BrainOpsApiClient
 import org.breezyweather.brainops.api.TasksResponse
 import org.breezyweather.brainops.api.WeatherApiClient
 import org.breezyweather.brainops.api.WeatherResponse
+import org.breezyweather.brainops.auth.AuthRepository
 
-class BrainOpsRepository(private val config: BrainOpsConfig) {
-    private val weatherApi = WeatherApiClient(config).api
-    private val brainOpsApi = BrainOpsApiClient(config).api
+class BrainOpsRepository(
+    private val config: BrainOpsConfig,
+    private val authRepository: AuthRepository
+) {
+    private val weatherApi = WeatherApiClient(config) { authRepository.getAccessToken() }.api
+    private val brainOpsApi = BrainOpsApiClient(config) { authRepository.getAccessToken() }.api
 
     suspend fun getCurrentWeather(): WeatherResponse {
         val auth = "Bearer ${config.apiKey}"

@@ -92,7 +92,10 @@ interface WeatherApi {
     ): Response<ForecastResponse>
 }
 
-class WeatherApiClient(config: BrainOpsConfig) {
+class WeatherApiClient(
+    private val config: BrainOpsConfig,
+    private val authTokenProvider: () -> String?
+) {
     private val okHttp = OkHttpClient.Builder()
         .addInterceptor(HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BASIC
@@ -105,7 +108,21 @@ class WeatherApiClient(config: BrainOpsConfig) {
             Json { ignoreUnknownKeys = true }
                 .asConverterFactory("application/json".toMediaType())
         )
-        .client(okHttp)
+        .client(
+            okHttp.newBuilder().addInterceptor { chain ->
+                val token = authTokenProvider()
+                val authHeader = token?.let { "Bearer $it" }
+                    ?: if (BuildConfig.DEBUG) "Bearer ${config.devApiKey}" else null
+                if (authHeader == null) {
+                    throw IllegalStateException("Missing auth token")
+                }
+                val req = chain.request().newBuilder()
+                    .addHeader("Authorization", authHeader)
+                    .addHeader("X-Tenant-ID", config.tenantId.ifBlank { BuildConfig.DEFAULT_TENANT_ID })
+                    .build()
+                chain.proceed(req)
+            }.build()
+        )
         .build()
 
     val api: WeatherApi = retrofit.create(WeatherApi::class.java)

@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.breezyweather.brainops.BrainOpsConfig
 import org.breezyweather.brainops.repo.BrainOpsRepository
+import org.breezyweather.brainops.auth.AuthRepository
 
 sealed class UiState<out T> {
     object Loading : UiState<Nothing>()
@@ -24,10 +25,11 @@ data class OpsImpact(
 )
 
 class BrainOpsViewModel(
-    private val config: BrainOpsConfig
+    private val config: BrainOpsConfig,
+    authRepository: AuthRepository
 ) : ViewModel() {
 
-    private val repository = BrainOpsRepository(config)
+    private val repository = BrainOpsRepository(config, authRepository)
 
     private val _opsImpact = MutableStateFlow<UiState<OpsImpact>>(UiState.Loading)
     val opsImpact: StateFlow<UiState<OpsImpact>> = _opsImpact
@@ -59,10 +61,13 @@ class BrainOpsViewModel(
         }
     }
 
-    class Factory(private val config: BrainOpsConfig) : ViewModelProvider.Factory {
+    class Factory(
+        private val config: BrainOpsConfig,
+        private val authRepository: AuthRepository
+    ) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             @Suppress("UNCHECKED_CAST")
-            return BrainOpsViewModel(config) as T
+            return BrainOpsViewModel(config, authRepository) as T
         }
     }
 }
