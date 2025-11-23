@@ -6,6 +6,8 @@ import org.breezyweather.brainops.api.TasksResponse
 import org.breezyweather.brainops.api.WeatherApiClient
 import org.breezyweather.brainops.api.WeatherResponse
 import org.breezyweather.brainops.auth.AuthRepository
+import org.breezyweather.brainops.api.AgentsApiClient
+import org.breezyweather.brainops.api.AgentsResponse
 
 class BrainOpsRepository(
     private val config: BrainOpsConfig,
@@ -13,6 +15,7 @@ class BrainOpsRepository(
 ) {
     private val weatherApi = WeatherApiClient(config) { authRepository.getAccessToken() }.api
     private val brainOpsApi = BrainOpsApiClient(config) { authRepository.getAccessToken() }.api
+    private val agentsApi = AgentsApiClient(config) { authRepository.getAccessToken() }.api
 
     suspend fun getCurrentWeather(): WeatherResponse {
         val auth = "Bearer ${config.apiKey}"
@@ -32,5 +35,14 @@ class BrainOpsRepository(
             return response.body() ?: TasksResponse()
         }
         throw IllegalStateException("Tasks fetch failed: ${response.code()}")
+    }
+
+    suspend fun getAgents(): AgentsResponse {
+        val auth = "Bearer ${config.apiKey}"
+        val response = agentsApi.getAgents(auth)
+        if (response.isSuccessful) {
+            return response.body() ?: AgentsResponse()
+        }
+        throw IllegalStateException("Agents fetch failed: ${response.code()}")
     }
 }

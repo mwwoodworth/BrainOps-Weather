@@ -87,7 +87,7 @@ class BrainOpsDashboardActivity : ComponentActivity() {
                                             title = "Operations Impact",
                                             body = """
                                                 Weather: ${data.weatherStatus} | Safe: ${data.safeToWork} (score ${data.workScore})
-                                                Active tasks: ${data.activeTasks}
+                                                Active tasks: ${data.activeTasks} | Agents: ${data.agentCount} | Risk: ${data.riskLevel}
                                                 Alerts: ${data.workAlerts.joinToString().ifEmpty { "None" }}
                                             """.trimIndent()
                                         )

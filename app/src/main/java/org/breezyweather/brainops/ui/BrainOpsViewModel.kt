@@ -22,6 +22,8 @@ data class OpsImpact(
     val workScore: Int = 100,
     val workAlerts: List<String> = emptyList(),
     val activeTasks: Int = 0,
+    val agentCount: Int = 0,
+    val riskLevel: String = "Low"
 )
 
 class BrainOpsViewModel(
@@ -45,14 +47,26 @@ class BrainOpsViewModel(
             try {
                 val weather = repository.getCurrentWeather()
                 val tasks = repository.getTasks(status = null, limit = 20)
+                val agents = runCatching { repository.getAgents() }.getOrNull()
                 val safety = weather.workSafety
+
+                val safe = safety?.safeToWork ?: true
+                val score = safety?.score ?: 100
+                val risk = when {
+                    !safe -> "High"
+                    score < 50 -> "Medium"
+                    tasks.tasks.size > 20 -> "Medium"
+                    else -> "Low"
+                }
 
                 val impact = OpsImpact(
                     weatherStatus = weather.weather?.weather?.firstOrNull()?.main ?: "Unknown",
-                    safeToWork = safety?.safeToWork ?: true,
-                    workScore = safety?.score ?: 100,
+                    safeToWork = safe,
+                    workScore = score,
                     workAlerts = safety?.alerts ?: emptyList(),
-                    activeTasks = tasks.tasks.size
+                    activeTasks = tasks.tasks.size,
+                    agentCount = agents?.agents?.size ?: 0,
+                    riskLevel = risk
                 )
                 _opsImpact.value = UiState.Success(impact)
             } catch (e: Exception) {
