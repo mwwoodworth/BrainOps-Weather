@@ -1,0 +1,48 @@
+name: Breezy Weather Pull Request CI
+
+on:
+  pull_request:
+    branches:
+      - main
+      - dev
+    paths-ignore:
+      - ".editorconfig"
+      - "docs/*"
+      - "fastlane/*"
+      - "work/*"
+      - "**.md"
+      - "LICENSE"
+
+jobs:
+  build:
+    runs-on: 'ubuntu-24.04'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+
+      - name: Dependency review
+        uses: actions/dependency-review-action@3c4e3dcb1aa7874d2c16be7d79418e9b7efd6261 # v4.8.2
+
+      - name: Set up JDK
+        uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
+        with:
+          java-version: 17
+          distribution: temurin
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5.0.0
+
+      - name: Lint
+        run: ./gradlew spotlessCheck
+
+      - name: Clean build
+        run: ./gradlew clean
+
+      - name: Assemble basic flavor
+        run: ./gradlew assembleBasicDebug
+
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        with:
+          name: BreezyWeather_basicDebug.apk
+          path: app/build/outputs/apk/basic/debug/app-basic-universal-debug.apk
