@@ -1,5 +1,6 @@
 package org.breezyweather.brainops.ui
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -14,17 +15,20 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.platform.LocalContext
-import android.content.Intent
-import org.breezyweather.brainops.ui.BrainOpsSettingsActivity
+import androidx.lifecycle.viewmodel.compose.viewModel
 import org.breezyweather.brainops.BrainOpsConfigStore
 import org.breezyweather.brainops.FeatureFlags
 
@@ -35,6 +39,17 @@ class BrainOpsDashboardActivity : ComponentActivity() {
         val config = BrainOpsConfigStore(this).loadConfig()
 
         setContent {
+            val vm: BrainOpsViewModel = viewModel(
+                factory = BrainOpsViewModel.Factory(config)
+            )
+            val opsImpact by vm.opsImpact.collectAsState()
+
+            LaunchedEffect(config) {
+                if (FeatureFlags.isBrainOpsEnabled(config)) {
+                    vm.loadOpsImpact()
+                }
+            }
+
             MaterialTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -48,18 +63,34 @@ class BrainOpsDashboardActivity : ComponentActivity() {
                         item {
                             SectionTitle(text = "Weather Overview")
                         }
-                        item { GlassCard(title = "Current Conditions", body = "Placeholder for current weather.") }
-                        item { GlassCard(title = "Hourly Forecast", body = "Placeholder for next 6 hours.") }
-                        item { GlassCard(title = "Daily Forecast", body = "Placeholder for next 5 days.") }
-                        item { GlassCard(title = "Weather Alerts", body = "No active alerts.") }
+                        item { GlassCard(title = "Current Conditions", body = "Loaded from weather API when enabled.") }
+                        item { GlassCard(title = "Hourly Forecast", body = "Loaded from weather API when enabled.") }
+                        item { GlassCard(title = "Daily Forecast", body = "Loaded from weather API when enabled.") }
+                        item { GlassCard(title = "Weather Alerts", body = "Uses ERP alerts endpoint.") }
 
                         if (FeatureFlags.isBrainOpsEnabled(config)) {
                             item { SectionTitle(text = "Ops Impact") }
                             item {
-                                GlassCard(
-                                    title = "Operations Impact",
-                                    body = "3 crews available, 2 jobs at risk.\nTap settings to enable live data."
-                                )
+                                when (opsImpact) {
+                                    is UiState.Loading -> GlassCard(title = "Operations Impact", body = "Loading...") {
+                                        CircularProgressIndicator(color = Color.White)
+                                    }
+                                    is UiState.Error -> GlassCard(
+                                        title = "Operations Impact",
+                                        body = (opsImpact as UiState.Error).message
+                                    )
+                                    is UiState.Success -> {
+                                        val data = (opsImpact as UiState.Success).data
+                                        GlassCard(
+                                            title = "Operations Impact",
+                                            body = """
+                                                Weather: ${data.weatherStatus} | Safe: ${data.safeToWork} (score ${data.workScore})
+                                                Active tasks: ${data.activeTasks}
+                                                Alerts: ${data.workAlerts.joinToString().ifEmpty { "None" }}
+                                            """.trimIndent()
+                                        )
+                                    }
+                                }
                             }
                         } else {
                             item {
@@ -95,6 +126,7 @@ private fun SectionTitle(text: String) {
 private fun GlassCard(
     title: String,
     body: String,
+    trailing: (@Composable () -> Unit)? = null,
 ) {
     Card(
         modifier = Modifier
@@ -116,6 +148,11 @@ private fun GlassCard(
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(top = 8.dp)
             )
+            if (trailing != null) {
+                Column(modifier = Modifier.padding(top = 12.dp)) {
+                    trailing()
+                }
+            }
         }
     }
 }

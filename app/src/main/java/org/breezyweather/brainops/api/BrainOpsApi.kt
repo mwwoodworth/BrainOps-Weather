@@ -11,6 +11,7 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Query
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
@@ -26,14 +27,21 @@ data class ImpactRequest(val tenantId: String, val locations: List<String> = emp
 data class ImpactResponse(val summary: String = "3 crews available, 2 jobs at risk")
 
 interface BrainOpsApi {
-    @GET("/api/weather/alerts")
-    suspend fun getAlerts(@Query("tenant_id") tenantId: String): Response<AlertsResponse>
+    @GET("weather/alerts")
+    suspend fun getAlerts(
+        @Header("Authorization") auth: String,
+        @Header("X-Tenant-ID") tenantIdHeader: String,
+        @Query("tenant_id") tenantId: String
+    ): Response<AlertsResponse>
 
-    @GET("/api/tasks")
-    suspend fun getTasks(@Query("tenant_id") tenantId: String): Response<TasksResponse>
-
-    @POST("/api/weather/impact")
-    suspend fun getOpsImpact(@Body request: ImpactRequest): Response<ImpactResponse>
+    @GET("tasks")
+    suspend fun getTasks(
+        @Header("Authorization") auth: String,
+        @Header("X-Tenant-ID") tenantIdHeader: String,
+        @Query("tenant_id") tenantId: String,
+        @Query("status") status: String? = null,
+        @Query("limit") limit: Int = 10
+    ): Response<TasksResponse>
 }
 
 class BrainOpsApiClient(config: BrainOpsConfig) {

@@ -27,7 +27,8 @@ class BrainOpsConfigStore(context: Context) {
 
     fun saveConfig(config: BrainOpsConfig) {
         prefs.edit()
-            .putString(KEY_API_BASE_URL, config.apiBaseUrl)
+            .putString(KEY_WEATHER_BASE_URL, config.weatherBaseUrl)
+            .putString(KEY_AI_BASE_URL, config.aiBaseUrl)
             .putString(KEY_API_KEY, config.apiKey)
             .putString(KEY_TENANT_ID, config.tenantId)
             .putBoolean(KEY_ENABLE_INTEGRATION, config.enableIntegration)
@@ -36,7 +37,10 @@ class BrainOpsConfigStore(context: Context) {
 
     fun loadConfig(): BrainOpsConfig {
         return BrainOpsConfig(
-            apiBaseUrl = prefs.getString(KEY_API_BASE_URL, BrainOpsConfig().apiBaseUrl) ?: BrainOpsConfig().apiBaseUrl,
+            weatherBaseUrl = prefs.getString(KEY_WEATHER_BASE_URL, BrainOpsConfig().weatherBaseUrl)
+                ?: BrainOpsConfig().weatherBaseUrl,
+            aiBaseUrl = prefs.getString(KEY_AI_BASE_URL, BrainOpsConfig().aiBaseUrl)
+                ?: BrainOpsConfig().aiBaseUrl,
             apiKey = prefs.getString(KEY_API_KEY, "") ?: "",
             tenantId = prefs.getString(KEY_TENANT_ID, "") ?: "",
             enableIntegration = prefs.getBoolean(KEY_ENABLE_INTEGRATION, false)
@@ -45,7 +49,8 @@ class BrainOpsConfigStore(context: Context) {
 
     companion object {
         private const val PREF_NAME = "brainops_config"
-        private const val KEY_API_BASE_URL = "api_base_url"
+        private const val KEY_WEATHER_BASE_URL = "weather_api_base_url"
+        private const val KEY_AI_BASE_URL = "ai_api_base_url"
         private const val KEY_API_KEY = "api_key"
         private const val KEY_TENANT_ID = "tenant_id"
         private const val KEY_ENABLE_INTEGRATION = "enable_integration"
