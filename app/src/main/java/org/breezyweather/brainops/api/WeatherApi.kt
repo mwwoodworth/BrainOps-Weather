@@ -96,6 +96,13 @@ class WeatherApiClient(
     private val config: BrainOpsConfig,
     private val authTokenProvider: () -> String?
 ) {
+    private fun resolveAuthHeader(): String? {
+        val token = authTokenProvider()
+        return token?.let { "Bearer $it" }
+            ?: config.apiKey.takeIf { it.isNotBlank() }?.let { "Bearer $it" }
+            ?: config.devApiKey.takeIf { it.isNotBlank() }?.let { "Bearer $it" }
+    }
+
     private val okHttp = OkHttpClient.Builder()
         .addInterceptor(HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BASIC
@@ -110,15 +117,10 @@ class WeatherApiClient(
         )
         .client(
             okHttp.newBuilder().addInterceptor { chain ->
-                val token = authTokenProvider()
-                val authHeader = token?.let { "Bearer $it" }
-                    ?: if (BuildConfig.DEBUG) "Bearer ${config.devApiKey}" else null
-                if (authHeader == null) {
-                    throw IllegalStateException("Missing auth token")
-                }
+                val authHeader = resolveAuthHeader() ?: throw IllegalStateException("Missing auth token")
                 val req = chain.request().newBuilder()
-                    .addHeader("Authorization", authHeader)
-                    .addHeader("X-Tenant-ID", config.tenantId.ifBlank { BuildConfig.DEFAULT_TENANT_ID })
+                    .header("Authorization", authHeader)
+                    .header("X-Tenant-ID", config.effectiveTenantId)
                     .build()
                 chain.proceed(req)
             }.build()

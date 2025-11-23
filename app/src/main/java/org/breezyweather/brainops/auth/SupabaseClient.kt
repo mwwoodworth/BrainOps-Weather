@@ -1,10 +1,13 @@
 package org.breezyweather.brainops.auth
 
+import android.content.Intent
+import android.net.Uri
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.gotrue.Auth
-import io.github.jan.supabase.gotrue.providers.builtin.Email
-import io.github.jan.supabase.postgrest.Postgrest
+import io.github.jan.supabase.gotrue.FlowType
 import io.github.jan.supabase.gotrue.handleDeeplinks
+import io.github.jan.supabase.gotrue.auth
+import io.github.jan.supabase.postgrest.Postgrest
 
 object SupabaseClient {
     private const val SUPABASE_URL = "https://yomagoqdmxszqtdwuhab.supabase.co"
@@ -18,12 +21,13 @@ object SupabaseClient {
         install(Auth) {
             scheme = "com.brainops.weather"
             host = "auth-callback"
-            flowType = Auth.FlowType.PKCE
+            flowType = FlowType.PKCE
         }
         install(Postgrest)
     }
 
-    suspend fun handleDeepLink(url: String) {
-        client.gotrue.handleDeeplinks(url)
+    suspend fun handleDeepLink(uri: Uri) {
+        val intent = Intent(Intent.ACTION_VIEW, uri)
+        client.handleDeeplinks(intent)
     }
 }

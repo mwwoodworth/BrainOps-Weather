@@ -3,6 +3,7 @@ package org.breezyweather.brainops.auth
 import android.content.Context
 import android.net.Uri
 import io.github.jan.supabase.gotrue.providers.builtin.Email
+import io.github.jan.supabase.gotrue.auth
 
 class AuthRepository(context: Context) {
     private val supabase = SupabaseClient.client
@@ -10,10 +11,11 @@ class AuthRepository(context: Context) {
 
     suspend fun signInWithEmail(email: String, password: String): Result<UserSession> {
         return runCatching {
-            val session = supabase.auth.signInWith(Email) {
+            supabase.auth.signInWith(Email) {
                 this.email = email
                 this.password = password
             }
+            val session = supabase.auth.currentSessionOrNull()
             val userSession = UserSession(
                 accessToken = session?.accessToken,
                 refreshToken = session?.refreshToken,
@@ -33,7 +35,7 @@ class AuthRepository(context: Context) {
     }
 
     suspend fun handleDeepLink(uri: Uri) {
-        SupabaseClient.handleDeepLink(uri.toString())
+        SupabaseClient.handleDeepLink(uri)
     }
 
     suspend fun signOut() {

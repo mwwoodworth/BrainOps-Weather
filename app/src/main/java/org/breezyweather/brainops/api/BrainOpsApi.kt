@@ -48,16 +48,18 @@ class BrainOpsApiClient(
     private val config: BrainOpsConfig,
     private val authTokenProvider: () -> String?
 ) {
-    private val headersInterceptor = Interceptor { chain ->
+    private fun resolveAuthHeader(): String? {
         val token = authTokenProvider()
-        val authHeader = token?.let { "Bearer $it" }
-            ?: if (BuildConfig.DEBUG) "Bearer ${config.devApiKey}" else null
-        if (authHeader == null) {
-            throw IllegalStateException("Missing auth token")
-        }
+        return token?.let { "Bearer $it" }
+            ?: config.apiKey.takeIf { it.isNotBlank() }?.let { "Bearer $it" }
+            ?: config.devApiKey.takeIf { it.isNotBlank() }?.let { "Bearer $it" }
+    }
+
+    private val headersInterceptor = Interceptor { chain ->
+        val authHeader = resolveAuthHeader() ?: throw IllegalStateException("Missing auth token")
         val request = chain.request().newBuilder()
-            .addHeader("Authorization", authHeader)
-            .addHeader("X-Tenant-ID", config.tenantId.ifBlank { BuildConfig.DEFAULT_TENANT_ID })
+            .header("Authorization", authHeader)
+            .header("X-Tenant-ID", config.effectiveTenantId)
             .build()
         chain.proceed(request)
     }

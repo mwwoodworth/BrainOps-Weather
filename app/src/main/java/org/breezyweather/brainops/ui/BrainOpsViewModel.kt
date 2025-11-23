@@ -28,7 +28,7 @@ data class OpsImpact(
 
 class BrainOpsViewModel(
     private val config: BrainOpsConfig,
-    authRepository: AuthRepository
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val repository = BrainOpsRepository(config, authRepository)
@@ -37,8 +37,11 @@ class BrainOpsViewModel(
     val opsImpact: StateFlow<UiState<OpsImpact>> = _opsImpact
 
     fun loadOpsImpact() {
-        if (config.apiKey.isBlank() || config.tenantId.isBlank()) {
-            _opsImpact.value = UiState.Error("Missing API key or tenant")
+        val hasAccessToken = authRepository.getAccessToken()?.isNotBlank() == true
+        val effectiveApiKey = config.apiKey.ifBlank { config.devApiKey }
+        val effectiveTenant = config.effectiveTenantId
+        if ((!hasAccessToken && effectiveApiKey.isBlank()) || effectiveTenant.isBlank()) {
+            _opsImpact.value = UiState.Error("Missing BrainOps auth or tenant")
             return
         }
 

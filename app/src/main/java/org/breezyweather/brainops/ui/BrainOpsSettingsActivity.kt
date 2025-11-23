@@ -36,6 +36,7 @@ class BrainOpsSettingsActivity : ComponentActivity() {
             var apiBase by remember { mutableStateOf(initial.apiBaseUrl) }
             var apiKey by remember { mutableStateOf(initial.apiKey) }
             var tenantId by remember { mutableStateOf(initial.tenantId) }
+            var radarUrl by remember { mutableStateOf(initial.radarUrl) }
             var enabled by remember { mutableStateOf(initial.enableIntegration) }
             var saved by remember { mutableStateOf(false) }
 
@@ -68,6 +69,7 @@ class BrainOpsSettingsActivity : ComponentActivity() {
                             visualTransformation = PasswordVisualTransformation()
                         ) { apiKey = it }
                         LabeledField(label = "Tenant ID", value = tenantId) { tenantId = it }
+                        LabeledField(label = "Radar URL (optional)", value = radarUrl) { radarUrl = it }
 
                         RowWithCheckbox(
                             label = "Enable BrainOps integration",
@@ -80,7 +82,8 @@ class BrainOpsSettingsActivity : ComponentActivity() {
                                     apiBaseUrl = apiBase.trim(),
                                     apiKey = apiKey.trim(),
                                     tenantId = tenantId.trim(),
-                                    enableIntegration = enabled
+                                    enableIntegration = enabled,
+                                    radarUrl = radarUrl.trim()
                                 )
                                 store.saveConfig(newConfig)
                                 saved = true

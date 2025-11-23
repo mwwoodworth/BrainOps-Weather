@@ -53,7 +53,6 @@ import org.breezyweather.common.options.appearance.BackgroundAnimationMode
 import org.breezyweather.databinding.FragmentHomeBinding
 import org.breezyweather.domain.location.model.getPlace
 import org.breezyweather.domain.settings.SettingsManager
-import org.breezyweather.brainops.ui.BrainOpsDashboardActivity
 import org.breezyweather.ui.common.widgets.SwipeSwitchLayout
 import org.breezyweather.ui.main.MainActivity
 import org.breezyweather.ui.main.MainActivityViewModel

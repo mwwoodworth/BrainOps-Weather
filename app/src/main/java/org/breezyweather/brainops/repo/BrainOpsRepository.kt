@@ -17,9 +17,12 @@ class BrainOpsRepository(
     private val brainOpsApi = BrainOpsApiClient(config) { authRepository.getAccessToken() }.api
     private val agentsApi = AgentsApiClient(config) { authRepository.getAccessToken() }.api
 
+    private fun effectiveApiKey(): String =
+        config.apiKey.ifBlank { config.devApiKey }
+
     suspend fun getCurrentWeather(): WeatherResponse {
-        val auth = "Bearer ${config.apiKey}"
-        val tenant = config.tenantId
+        val auth = "Bearer ${effectiveApiKey()}"
+        val tenant = config.effectiveTenantId
         val response = weatherApi.getCurrentWeather(auth, tenant)
         if (response.isSuccessful) {
             return response.body() ?: WeatherResponse()
@@ -28,9 +31,9 @@ class BrainOpsRepository(
     }
 
     suspend fun getTasks(status: String? = null, limit: Int = 10): TasksResponse {
-        val auth = "Bearer ${config.apiKey}"
-        val tenant = config.tenantId
-        val response = brainOpsApi.getTasks(auth, tenant, config.tenantId, status, limit)
+        val auth = "Bearer ${effectiveApiKey()}"
+        val tenant = config.effectiveTenantId
+        val response = brainOpsApi.getTasks(auth, tenant, tenant, status, limit)
         if (response.isSuccessful) {
             return response.body() ?: TasksResponse()
         }
@@ -38,7 +41,7 @@ class BrainOpsRepository(
     }
 
     suspend fun getAgents(): AgentsResponse {
-        val auth = "Bearer ${config.apiKey}"
+        val auth = "Bearer ${effectiveApiKey()}"
         val response = agentsApi.getAgents(auth)
         if (response.isSuccessful) {
             return response.body() ?: AgentsResponse()
