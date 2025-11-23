@@ -66,6 +66,11 @@ import org.breezyweather.ui.theme.resource.ResourcesProviderFactory
 import org.breezyweather.ui.theme.resource.providers.ResourceProvider
 import org.breezyweather.ui.theme.weatherView.WeatherView
 import org.breezyweather.ui.theme.weatherView.WeatherViewController
+import org.breezyweather.brainops.ui.BrainOpsLoginActivity
+import org.breezyweather.brainops.ui.AuthCallbackActivity
+import org.breezyweather.brainops.ui.BrainOpsSettingsActivity
+import org.breezyweather.brainops.ui.BrainOpsDashboardActivity
+import org.breezyweather.brainops.auth.AuthRepository
 
 class HomeFragment : MainModuleFragment() {
 
@@ -202,6 +207,9 @@ class HomeFragment : MainModuleFragment() {
                 R.id.action_open_in_other_app -> callback?.onOpenInOtherAppIconClicked()
                 R.id.action_open_brainops -> {
                     startActivity(Intent(requireContext(), BrainOpsDashboardActivity::class.java))
+                }
+                R.id.action_brainops_login -> {
+                    startActivity(Intent(requireContext(), BrainOpsLoginActivity::class.java))
                 }
             }
             true

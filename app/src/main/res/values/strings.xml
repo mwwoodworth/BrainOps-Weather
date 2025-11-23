@@ -1297,4 +1297,6 @@
     <string name="brainops_settings">BrainOps Settings</string>
     <string name="brainops_settings_description">Configure BrainOps endpoints, API key, and tenant for integration.</string>
     <string name="brainops_action_open_dashboard">Open BrainOps</string>
+    <string name="brainops_action_login">BrainOps Login</string>
+    <string name="brainops_action_sign_out">BrainOps Sign Out</string>
 </resources>
