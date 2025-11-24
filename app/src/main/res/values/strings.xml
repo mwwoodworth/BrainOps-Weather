@@ -2,7 +2,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <!-- App -->
     <string name="app_name">BrainOps Weather</string>
-    <string name="app_version">6.0.24</string>
+    <string name="app_version">6.0.25</string>
     <string name="breezy_weather" translatable="false">BrainOps Weather</string>
     <string name="forecast">Forecast</string>
     <string name="daily_forecast">Daily forecast</string>
