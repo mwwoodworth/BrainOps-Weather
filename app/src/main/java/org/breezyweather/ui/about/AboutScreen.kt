@@ -116,7 +116,7 @@ internal fun AboutScreen(
             iconId = R.drawable.ic_code,
             titleId = R.string.about_source_code
         ) {
-            linkToOpen.value = "https://github.com/breezy-weather/breezy-weather"
+            linkToOpen.value = "https://github.com/mwwoodworth/BrainOps-Weather"
             dialogLinkOpenState.value = true
         },
         AboutAppLinkItem(
@@ -181,7 +181,7 @@ internal fun AboutScreen(
                             // "freenet" flavor
                             // We ask for permission to manually check updates in the browser instead
                             linkToOpen.value =
-                                "https://github.com/breezy-weather/breezy-weather/releases/latest"
+                                "https://github.com/mwwoodworth/BrainOps-Weather/releases/latest"
                             dialogLinkOpenState.value = true
                         } else {
                             if (!isCheckingUpdates.value) {

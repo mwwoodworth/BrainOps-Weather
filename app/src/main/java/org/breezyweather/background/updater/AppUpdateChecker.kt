@@ -63,7 +63,7 @@ class AppUpdateChecker @Inject constructor(
     }
 }
 
-val GITHUB_ORG = "breezy-weather"
-val GITHUB_REPO = "breezy-weather"
+val GITHUB_ORG = "mwwoodworth"
+val GITHUB_REPO = "BrainOps-Weather"
 
-val RELEASE_URL = "https://github.com/${GITHUB_REPO}/releases/tag/v${BuildConfig.VERSION_NAME}"
+val RELEASE_URL = "https://github.com/${GITHUB_ORG}/${GITHUB_REPO}/releases/tag/v${BuildConfig.VERSION_NAME}"
