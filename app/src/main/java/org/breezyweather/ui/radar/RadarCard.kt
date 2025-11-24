@@ -70,7 +70,7 @@ fun InteractiveRadarCard(
                             )
                     )
                     Text(
-                        text = "Weather Radar",
+                        text = "Live Radar",
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.SemiBold
                         ),
@@ -121,6 +121,9 @@ fun InteractiveRadarCard(
                             color = colorResource(R.color.brainops_surface_glass),
                             shape = RoundedCornerShape(24.dp)
                         )
+                        .clickable {
+                            onExpandClick?.invoke() ?: IntentHelper.startRadarActivity(context, location)
+                        }
                         .padding(horizontal = 20.dp, vertical = 10.dp)
                 ) {
                     Row(

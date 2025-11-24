@@ -9,6 +9,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.preference.PreferenceManager
@@ -26,6 +27,7 @@ import org.osmdroid.views.overlay.TilesOverlay
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.delay
 import java.net.HttpURLConnection
 import java.net.URL
 
@@ -40,6 +42,8 @@ fun RadarMapView(
 ) {
     val context = LocalContext.current
     var rainViewerTimestamp by remember { mutableStateOf<Long?>(null) }
+    var radarOverlay: TilesOverlay? by remember { mutableStateOf(null) }
+    val isDark = isSystemInDarkTheme()
 
     // Initialize OSMDroid configuration
     LaunchedEffect(Unit) {
@@ -50,7 +54,18 @@ fun RadarMapView(
         rainViewerTimestamp = fetchLatestRainViewerTimestamp()
     }
 
-    // Create dark OSM tile source - CartoDB Dark Matter
+    // Periodically refresh radar timestamp so new frames show up
+    LaunchedEffect(Unit) {
+        while (true) {
+            val ts = fetchLatestRainViewerTimestamp()
+            if (ts != null && ts != rainViewerTimestamp) {
+                rainViewerTimestamp = ts
+            }
+            kotlinx.coroutines.delay(5 * 60 * 1000L) // 5 minutes
+        }
+    }
+
+    // Create dark/light OSM tile sources (CartoDB Dark Matter for dark, Mapnik for light)
     val darkBasemap = remember {
         object : OnlineTileSourceBase(
             "CartoDB Dark Matter",
@@ -73,10 +88,11 @@ fun RadarMapView(
 
     val mapView = remember {
         MapView(context).apply {
-            // Use dark CartoDB basemap
-            setTileSource(darkBasemap)
+            // Default basemap will be set in theme effect below
             setMultiTouchControls(isInteractive)
-            controller.setZoom(10.0)
+            controller.setZoom(9.5)
+            // RainViewer tiles top out at zoom 10; keep map from requesting higher zoom levels.
+            maxZoomLevel = 10.0
 
             // Performance optimizations for 120fps+ on high-end devices
             setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null)
@@ -97,13 +113,18 @@ fun RadarMapView(
         mapView.controller.setCenter(point)
     }
 
+    // Update basemap when theme changes
+    LaunchedEffect(isDark) {
+        mapView.setTileSource(if (isDark) darkBasemap else TileSourceFactory.MAPNIK)
+        mapView.invalidate()
+    }
+
     // Update Layers - Smart multi-source radar
-    LaunchedEffect(layers, location) {
-        // Preserve base map (index 0) and clear other overlays (weather layers)
-        if (mapView.overlays.isNotEmpty()) {
-            val baseMap = mapView.overlays[0]
-            mapView.overlays.clear()
-            mapView.overlays.add(baseMap)
+    LaunchedEffect(layers, location, rainViewerTimestamp) {
+        // Remove previous radar overlay only (leave basemap intact)
+        radarOverlay?.let { previous ->
+            mapView.overlays.remove(previous)
+            radarOverlay = null
         }
 
         // Add radar layer if precipitation is selected
@@ -112,12 +133,12 @@ fun RadarMapView(
             val isUSLocation = location.latitude >= 24.0 && location.latitude <= 50.0 &&
                               location.longitude >= -125.0 && location.longitude <= -66.0
 
-            val tileSource = if (isUSLocation) {
-                // NOAA NEXRAD Radar - Free forever, high quality, US only
-                object : OnlineTileSourceBase(
-                    "NOAA NEXRAD Radar",
-                    0, 18, 256, ".png",
-                    arrayOf(
+                val tileSource = if (isUSLocation) {
+                    // NOAA NEXRAD Radar - Free forever, high quality, US only
+                    object : OnlineTileSourceBase(
+                        "NOAA NEXRAD Radar",
+                        0, 18, 256, ".png",
+                        arrayOf(
                         "https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913/",
                         "https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913/"
                     )
@@ -128,19 +149,16 @@ fun RadarMapView(
                         val y = MapTileIndex.getY(pMapTileIndex)
                         return "${baseUrl[0]}$z/$x/$y.png"
                     }
-                }
-            } else {
-                // RainViewer - Free globally, no API key
-                val timestamp = rainViewerTimestamp
-                if (timestamp == null) {
-                    Log.w("RadarMapView", "RainViewer timestamp unavailable; skipping radar overlay.")
-                    null
-                } else
-                object : OnlineTileSourceBase(
-                    "RainViewer Radar",
-                    0, 12, 256, ".png",
-                    arrayOf(
-                        "https://tilecache.rainviewer.com/v2/radar/",
+                    }
+                } else {
+                    // RainViewer - Free globally, no API key
+                    val timestamp = rainViewerTimestamp
+                    val tsSegment = timestamp?.toString() ?: "last" // fallback to latest available frame
+                    object : OnlineTileSourceBase(
+                        "RainViewer Radar",
+                        0, 10, 256, ".png", // RainViewer radar frames support zoom levels 0-10
+                        arrayOf(
+                            "https://tilecache.rainviewer.com/v2/radar/",
                         "https://tilecache.rainviewer.com/v2/radar/"
                     )
                 ) {
@@ -148,8 +166,8 @@ fun RadarMapView(
                         val z = MapTileIndex.getZoom(pMapTileIndex)
                         val x = MapTileIndex.getX(pMapTileIndex)
                         val y = MapTileIndex.getY(pMapTileIndex)
-                        // RainViewer requires a valid timestamp; we use the freshest frame.
-                        return "${baseUrl[0]}$timestamp/256/$z/$x/$y/2/1_1.png"
+                        // RainViewer requires a valid timestamp; use the freshest frame (or "last" fallback).
+                        return "${baseUrl[0]}$tsSegment/256/$z/$x/$y/2/1_1.png"
                     }
                 }
             }
@@ -163,6 +181,7 @@ fun RadarMapView(
                 overlay.loadingLineColor = android.graphics.Color.TRANSPARENT
                 overlay.setLoadingDrawable(null) // No loading indicator
                 mapView.overlays.add(overlay)
+                radarOverlay = overlay
             }
         }
 
