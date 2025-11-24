@@ -67,22 +67,23 @@ fun RadarMapView(
 
     // Create dark/light OSM tile sources (CartoDB Dark Matter for dark, Mapnik for light)
     val darkBasemap = remember {
+        // Explicit server list to allow safe rotation
+        val servers = listOf(
+            "https://a.basemaps.cartocdn.com/dark_all/",
+            "https://b.basemaps.cartocdn.com/dark_all/",
+            "https://c.basemaps.cartocdn.com/dark_all/",
+            "https://d.basemaps.cartocdn.com/dark_all/"
+        )
         object : OnlineTileSourceBase(
             "CartoDB Dark Matter",
             0, 20, 256, ".png",
-            arrayOf(
-                "https://a.basemaps.cartocdn.com/dark_all/",
-                "https://b.basemaps.cartocdn.com/dark_all/",
-                "https://c.basemaps.cartocdn.com/dark_all/",
-                "https://d.basemaps.cartocdn.com/dark_all/"
-            )
+            servers.toTypedArray()
         ) {
             override fun getTileURLString(pMapTileIndex: Long): String {
                 val zoom = MapTileIndex.getZoom(pMapTileIndex)
                 val x = MapTileIndex.getX(pMapTileIndex)
                 val y = MapTileIndex.getY(pMapTileIndex)
-                // Rotate across base URLs for resiliency
-                val server = baseUrl[(x + y + zoom) % baseUrl.size]
+                val server = servers[(x + y + zoom).mod(servers.size)]
                 return "${server}${zoom}/${x}/${y}$mImageFilenameEnding"
             }
         }
