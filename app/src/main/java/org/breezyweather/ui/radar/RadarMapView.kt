@@ -12,6 +12,7 @@ import androidx.preference.PreferenceManager
 import breezyweather.domain.location.model.Location
 import org.breezyweather.BuildConfig
 import org.osmdroid.config.Configuration
+import org.osmdroid.tileprovider.MapTileProviderBasic
 import org.osmdroid.tileprovider.tilesource.OnlineTileSourceBase
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
@@ -36,23 +37,23 @@ fun RadarMapView(
         Configuration.getInstance().userAgentValue = BuildConfig.APPLICATION_ID
     }
 
-    // Create VERY dark basemap like TodayWeather/OpenDrop
+    // Create VERY dark basemap like TodayWeather/Overdrop
     val darkBasemap = remember {
         object : OnlineTileSourceBase(
-            "Dark Simple",
-            0, 20, 256, ".png",
+            "CartoDB Dark",
+            0, 19, 256, ".png",
             arrayOf(
-                "https://a.basemaps.cartocdn.com/dark_nolabels/",
-                "https://b.basemaps.cartocdn.com/dark_nolabels/",
-                "https://c.basemaps.cartocdn.com/dark_nolabels/",
-                "https://d.basemaps.cartocdn.com/dark_nolabels/"
+                "https://a.basemaps.cartocdn.com/dark_all/",
+                "https://b.basemaps.cartocdn.com/dark_all/",
+                "https://c.basemaps.cartocdn.com/dark_all/",
+                "https://d.basemaps.cartocdn.com/dark_all/"
             )
         ) {
             override fun getTileURLString(pMapTileIndex: Long): String {
-                val z = MapTileIndex.getZoom(pMapTileIndex)
+                val zoom = MapTileIndex.getZoom(pMapTileIndex)
                 val x = MapTileIndex.getX(pMapTileIndex)
                 val y = MapTileIndex.getY(pMapTileIndex)
-                return "${baseUrl[0]}$z/$x/$y.png"
+                return baseUrl[0] + zoom + "/" + x + "/" + y + mImageFilenameEnding
             }
         }
     }
@@ -101,7 +102,10 @@ fun RadarMapView(
                 }
             }
 
-            val overlay = TilesOverlay(MapTileProviderBasic(context, tileSource), context)
+            val tileProvider = MapTileProviderBasic(context)
+            tileProvider.tileSource = tileSource
+
+            val overlay = TilesOverlay(tileProvider, context)
             overlay.loadingBackgroundColor = android.graphics.Color.TRANSPARENT
             overlay.loadingLineColor = android.graphics.Color.TRANSPARENT
             mapView.overlays.add(overlay)
@@ -113,14 +117,10 @@ fun RadarMapView(
         factory = { mapView },
         modifier = modifier.fillMaxSize()
     )
-    
+
     DisposableEffect(Unit) {
         onDispose {
             mapView.onDetach()
         }
     }
 }
-
-// Helper to avoid creating provider in composable loop
-class MapTileProviderBasic(context: android.content.Context, tileSource: org.osmdroid.tileprovider.tilesource.ITileSource) : 
-    org.osmdroid.tileprovider.MapTileProviderBasic(context, tileSource)
