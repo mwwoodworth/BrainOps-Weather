@@ -81,14 +81,17 @@ fun RadarMapView(
                 val zoom = MapTileIndex.getZoom(pMapTileIndex)
                 val x = MapTileIndex.getX(pMapTileIndex)
                 val y = MapTileIndex.getY(pMapTileIndex)
-                return "${baseUrl[0]}$zoom/$x/$y$mImageFilenameEnding"
+                // Rotate across base URLs for resiliency
+                val server = baseUrl[(x + y + zoom) % baseUrl.size]
+                return "${server}${zoom}/${x}/${y}$mImageFilenameEnding"
             }
         }
     }
 
     val mapView = remember {
         MapView(context).apply {
-            // Default basemap will be set in theme effect below
+            // Set a safe default basemap immediately to avoid blank tiles
+            setTileSource(TileSourceFactory.MAPNIK)
             setMultiTouchControls(isInteractive)
             controller.setZoom(9.5)
             // RainViewer tiles top out at zoom 10; keep map from requesting higher zoom levels.

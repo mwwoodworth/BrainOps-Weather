@@ -62,13 +62,24 @@ if [ ! -f "$APK_PATH" ]; then
     exit 1
 fi
 
-# Sign the APK
+# Sign the APK with release keystore (brainops-release.jks)
 echo -e "${BLUE}3. Signing APK...${NC}"
+
+# Load keystore credentials
+KEYSTORE_PATH="./brainops-release.jks"
+KEYSTORE_PASS=$(grep -i "Password" KEYSTORE_PASSWORD.txt 2>/dev/null | awk '{print $2}')
+KEY_ALIAS=$(grep -i "Alias" KEYSTORE_PASSWORD.txt 2>/dev/null | awk '{print $2}')
+
+if [ -z "$KEYSTORE_PASS" ] || [ -z "$KEY_ALIAS" ]; then
+    echo -e "${RED}❌ Keystore credentials not found in KEYSTORE_PASSWORD.txt${NC}"
+    exit 1
+fi
+
 apksigner sign \
-    --ks ~/.android/debug.keystore \
-    --ks-key-alias androiddebugkey \
-    --ks-pass pass:android \
-    --key-pass pass:android \
+    --ks "$KEYSTORE_PATH" \
+    --ks-key-alias "$KEY_ALIAS" \
+    --ks-pass "pass:${KEYSTORE_PASS}" \
+    --key-pass "pass:${KEYSTORE_PASS}" \
     --out "$SIGNED_APK" \
     "$APK_PATH"
 
