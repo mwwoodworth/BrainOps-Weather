@@ -37,52 +37,31 @@ fun InteractiveRadarCard(
     val animationState = remember { mutableStateOf(RadarAnimationState()) }
     val insights = remember {
         mutableStateOf(listOf(
-            RadarInsight(0, "Heavy Rain Approaching", "Starting in 23 mins", InsightSeverity.WARNING),
-            RadarInsight(0, "Temperature Drop", "Dropping 5°F in 1 hour", InsightSeverity.INFO)
+            RadarInsight(0, "Heavy rain approaching", "Starting in 23 mins", InsightSeverity.WARNING),
+            RadarInsight(0, "Temperature drop", "Falling 5° in next hour", InsightSeverity.INFO)
         ))
     }
 
-    val gradientStart = colorResource(R.color.brainops_gradient_start)
-    val gradientEnd = colorResource(R.color.brainops_gradient_end)
-
     Card(
         modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.elevatedCardElevation(6.dp),
-        shape = RoundedCornerShape(28.dp),
+        elevation = CardDefaults.elevatedCardElevation(2.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.Transparent // To show gradient
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         )
     ) {
-        Box(
-            modifier = Modifier
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(gradientStart, gradientEnd)
-                    )
+        Column {
+            // Header
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    text = "Weather Radar",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
-        ) {
-            Column {
-                // Header with Icon
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_brainops_radar),
-                        contentDescription = null,
-                        tint = colorResource(R.color.brainops_primary),
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = "INTERACTIVE RADAR", // Uppercase for tech look
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 1.2.sp
-                        ),
-                        color = Color.White
-                    )
-                }
+            }
 
                 // Map View Container
                 Box(modifier = Modifier.height(450.dp)) {
@@ -111,18 +90,18 @@ fun InteractiveRadarCard(
                     )
                 }
 
-                // AI Insights Panel
+                // Weather Insights
                 if (insights.value.isNotEmpty()) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(colorResource(R.color.brainops_surface_glass))
+                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f))
                             .padding(16.dp)
                     ) {
                         Text(
-                            text = "BRAINOPS INSIGHTS",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = colorResource(R.color.brainops_secondary)
+                            text = "Alerts",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(8.dp))
 
@@ -133,9 +112,9 @@ fun InteractiveRadarCard(
                             ) {
                                 // Severity Indicator
                                 val severityColor = when(insight.severity) {
-                                    InsightSeverity.CRITICAL -> Color.Red
-                                    InsightSeverity.WARNING -> Color(0xFFFFD600)
-                                    InsightSeverity.INFO -> Color(0xFF00E5FF)
+                                    InsightSeverity.CRITICAL -> colorResource(R.color.colorLevel_4)
+                                    InsightSeverity.WARNING -> colorResource(R.color.colorLevel_2)
+                                    InsightSeverity.INFO -> MaterialTheme.colorScheme.primary
                                 }
                                 Box(
                                     modifier = Modifier
@@ -147,13 +126,13 @@ fun InteractiveRadarCard(
                                     Text(
                                         text = insight.title,
                                         style = MaterialTheme.typography.bodyMedium,
-                                        color = Color.White,
-                                        fontWeight = FontWeight.SemiBold
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        fontWeight = FontWeight.Medium
                                     )
                                     Text(
                                         text = insight.description,
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = Color.White.copy(alpha = 0.7f)
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                             }

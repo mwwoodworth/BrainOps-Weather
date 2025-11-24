@@ -35,9 +35,30 @@ fun RadarMapView(
         Configuration.getInstance().userAgentValue = BuildConfig.APPLICATION_ID
     }
 
+    // Create dark themed basemap tile source
+    val darkBasemap = remember {
+        object : OnlineTileSourceBase(
+            "CartoDB Dark Matter",
+            0, 20, 256, ".png",
+            arrayOf(
+                "https://a.basemaps.cartocdn.com/dark_all/",
+                "https://b.basemaps.cartocdn.com/dark_all/",
+                "https://c.basemaps.cartocdn.com/dark_all/",
+                "https://d.basemaps.cartocdn.com/dark_all/"
+            )
+        ) {
+            override fun getTileURLString(pMapTileIndex: Long): String {
+                val z = MapTileIndex.getZoom(pMapTileIndex)
+                val x = MapTileIndex.getX(pMapTileIndex)
+                val y = MapTileIndex.getY(pMapTileIndex)
+                return "${baseUrl[0]}$z/$x/$y.png"
+            }
+        }
+    }
+
     val mapView = remember {
         MapView(context).apply {
-            setTileSource(TileSourceFactory.MAPNIK) // Standard OSM
+            setTileSource(darkBasemap) // Dark themed basemap for better contrast
             setMultiTouchControls(true)
             controller.setZoom(10.0)
         }

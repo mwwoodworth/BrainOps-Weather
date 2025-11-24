@@ -31,9 +31,9 @@ class InteractiveRadarCardViewHolder(parent: ViewGroup) :
         super.onBindView(activity, location, provider, listAnimationEnabled, itemAnimationEnabled)
 
         composeView.setContent {
-            // Use app theme if available, or MaterialTheme defaults
-            // BreezyTheme might be the theme wrapper
-             InteractiveRadarCard(location = location)
+            org.breezyweather.ui.theme.compose.BreezyWeatherTheme {
+                InteractiveRadarCard(location = location)
+            }
         }
     }
 }
