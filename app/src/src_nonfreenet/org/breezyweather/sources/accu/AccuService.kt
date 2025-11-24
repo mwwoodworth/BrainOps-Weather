@@ -143,6 +143,12 @@ class AccuService @Inject constructor(
         requestedFeatures: List<SourceFeature>,
     ): Observable<WeatherWrapper> {
         val apiKey = getApiKeyOrDefault()
+        if (apiKey.isBlank()) {
+            // Short-circuit to avoid noisy sync errors when no key is configured
+            return Observable.error(
+                IllegalStateException("AccuWeather API key missing; configure it in Settings or choose another source.")
+            )
+        }
         val mApi = if (portal == AccuPortalPreference.ENTERPRISE) mEnterpriseApi else mDeveloperApi
         val locationKey = location.parameters.getOrElse(id) { null }?.getOrElse("locationKey") { null }
         if (
