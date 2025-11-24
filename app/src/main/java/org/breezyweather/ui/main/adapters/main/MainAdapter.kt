@@ -169,6 +169,8 @@ class MainAdapter(
                 ) {
                     continue
                 }
+                // CARD_RADAR: Always show, no conditions needed
+                // CARD_CLOCK: Always show, no conditions needed
                 mViewTypeList.add(getViewType(c))
             }
             mViewTypeList.add(ViewType.FOOTER)
