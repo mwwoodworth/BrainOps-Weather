@@ -95,6 +95,8 @@ android {
         it.buildConfigField(
             "String",
             "ACCU_WEATHER_KEY",
+            // Note: AccuWeather requires personal API key. Get one at developer.accuweather.com
+            // Set in local.properties as: breezy.accu.key=YOUR_KEY
             "\"${properties.getProperty("breezy.accu.key") ?: ""}\""
         )
         it.buildConfigField(
