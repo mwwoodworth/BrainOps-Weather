@@ -157,7 +157,9 @@
         <activity
             android:name=".ui.radar.RadarActivity"
             android:label="@string/interactive_radar"
-            android:theme="@style/BreezyWeatherTheme" />
+            android:theme="@style/BreezyWeatherTheme"
+            android:hardwareAccelerated="true"
+            android:configChanges="orientation|screenSize|screenLayout" />
 
         <activity
             android:name=".ui.settings.activities.SettingsActivity"

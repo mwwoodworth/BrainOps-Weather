@@ -59,12 +59,19 @@ fun RadarMapView(
 
     val mapView = remember {
         MapView(context).apply {
-            setTileSource(darkBasemap) // Very dark, simple basemap
+            setTileSource(darkBasemap)
             setMultiTouchControls(isInteractive)
             controller.setZoom(10.0)
+
+            // Performance optimizations for 120fps+ on high-end devices
+            setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null)
+            isFlingEnabled = true
+            setScrollableAreaLimitDouble(null) // No limit for smooth panning
+            setUseDataConnection(true)
+
             // Disable scroll if not interactive
             if (!isInteractive) {
-                setOnTouchListener { _, _ -> true } // Consume all touches
+                setOnTouchListener { _, _ -> true }
             }
         }
     }
