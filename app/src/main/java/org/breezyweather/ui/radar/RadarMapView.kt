@@ -39,29 +39,10 @@ fun RadarMapView(
 
     val mapView = remember {
         MapView(context).apply {
-            // Use built-in MAPNIK source first to ensure OSMDroid works
-            // We'll apply dark theming through ColorMatrix filter
+            // Use built-in MAPNIK source - simple and reliable
             setTileSource(TileSourceFactory.MAPNIK)
             setMultiTouchControls(isInteractive)
             controller.setZoom(10.0)
-
-            // Apply dark theme filter to basemap tiles
-            val darkPaint = android.graphics.Paint().apply {
-                colorFilter = android.graphics.ColorMatrixColorFilter(
-                    android.graphics.ColorMatrix().apply {
-                        // Invert colors and reduce brightness for dark theme
-                        setSaturation(0.3f) // Desaturate
-                        val darkMatrix = floatArrayOf(
-                            0.2f, 0f, 0f, 0f, -30f,  // Red
-                            0f, 0.2f, 0f, 0f, -30f,  // Green
-                            0f, 0f, 0.2f, 0f, -30f,  // Blue
-                            0f, 0f, 0f, 1f, 0f       // Alpha
-                        )
-                        postConcat(android.graphics.ColorMatrix(darkMatrix))
-                    }
-                )
-            }
-            overlayManager.tilesOverlay.paint = darkPaint
 
             // Performance optimizations for 120fps+ on high-end devices
             setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null)
@@ -73,6 +54,19 @@ fun RadarMapView(
             if (!isInteractive) {
                 setOnTouchListener { _, _ -> true }
             }
+
+            // Apply dark filter to the entire MapView for dark theme
+            val darkPaint = android.graphics.Paint().apply {
+                colorFilter = android.graphics.ColorMatrixColorFilter(
+                    floatArrayOf(
+                        0.2f, 0f, 0f, 0f, -40f,  // Red - reduce and darken
+                        0f, 0.2f, 0f, 0f, -40f,  // Green - reduce and darken
+                        0f, 0f, 0.2f, 0f, -40f,  // Blue - reduce and darken
+                        0f, 0f, 0f, 1f, 0f       // Alpha - unchanged
+                    )
+                )
+            }
+            setLayerPaint(darkPaint)
         }
     }
 
