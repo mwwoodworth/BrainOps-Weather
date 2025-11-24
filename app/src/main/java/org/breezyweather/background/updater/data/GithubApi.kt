@@ -20,12 +20,12 @@ import retrofit2.http.GET
 import retrofit2.http.Path
 
 /**
- * Open-Meteo API
+ * GitHub API
  */
 interface GithubApi {
-    @GET("repos/{org}/{repository}/releases/latest")
-    suspend fun getLatest(
+    @GET("repos/{org}/{repository}/releases")
+    suspend fun getReleases(
         @Path("org") org: String,
         @Path("repository") repository: String,
-    ): GithubRelease
+    ): List<GithubRelease>
 }

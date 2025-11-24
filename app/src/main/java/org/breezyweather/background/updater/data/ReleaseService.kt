@@ -32,11 +32,14 @@ class ReleaseService @Inject constructor(
 ) {
 
     suspend fun latest(org: String, repository: String): Release {
-        return client
+        val releases = client
             .baseUrl("https://api.github.com/")
             .build()
             .create(GithubApi::class.java)
-            .getLatest(org, repository)
-            .let(releaseMapper)
+            .getReleases(org, repository)
+
+        // Get the first (most recent) release, regardless of prerelease status
+        return releases.firstOrNull()?.let(releaseMapper)
+            ?: throw Exception("No releases found")
     }
 }

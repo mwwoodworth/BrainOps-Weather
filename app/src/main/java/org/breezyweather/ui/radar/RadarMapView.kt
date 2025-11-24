@@ -37,32 +37,31 @@ fun RadarMapView(
         Configuration.getInstance().userAgentValue = BuildConfig.APPLICATION_ID
     }
 
-    // Create VERY dark basemap like TodayWeather/Overdrop
-    val darkBasemap = remember {
-        object : OnlineTileSourceBase(
-            "CartoDB Dark",
-            0, 19, 256, ".png",
-            arrayOf(
-                "https://a.basemaps.cartocdn.com/dark_all/",
-                "https://b.basemaps.cartocdn.com/dark_all/",
-                "https://c.basemaps.cartocdn.com/dark_all/",
-                "https://d.basemaps.cartocdn.com/dark_all/"
-            )
-        ) {
-            override fun getTileURLString(pMapTileIndex: Long): String {
-                val zoom = MapTileIndex.getZoom(pMapTileIndex)
-                val x = MapTileIndex.getX(pMapTileIndex)
-                val y = MapTileIndex.getY(pMapTileIndex)
-                return baseUrl[0] + zoom + "/" + x + "/" + y + mImageFilenameEnding
-            }
-        }
-    }
-
     val mapView = remember {
         MapView(context).apply {
-            setTileSource(darkBasemap)
+            // Use built-in MAPNIK source first to ensure OSMDroid works
+            // We'll apply dark theming through ColorMatrix filter
+            setTileSource(TileSourceFactory.MAPNIK)
             setMultiTouchControls(isInteractive)
             controller.setZoom(10.0)
+
+            // Apply dark theme filter to basemap tiles
+            val darkPaint = android.graphics.Paint().apply {
+                colorFilter = android.graphics.ColorMatrixColorFilter(
+                    android.graphics.ColorMatrix().apply {
+                        // Invert colors and reduce brightness for dark theme
+                        setSaturation(0.3f) // Desaturate
+                        val darkMatrix = floatArrayOf(
+                            0.2f, 0f, 0f, 0f, -30f,  // Red
+                            0f, 0.2f, 0f, 0f, -30f,  // Green
+                            0f, 0f, 0.2f, 0f, -30f,  // Blue
+                            0f, 0f, 0f, 1f, 0f       // Alpha
+                        )
+                        postConcat(android.graphics.ColorMatrix(darkMatrix))
+                    }
+                )
+            }
+            overlayManager.tilesOverlay.paint = darkPaint
 
             // Performance optimizations for 120fps+ on high-end devices
             setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null)
