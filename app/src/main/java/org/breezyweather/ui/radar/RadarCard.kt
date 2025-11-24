@@ -139,7 +139,6 @@ fun InteractiveRadarCard(
                         }
                     }
                 }
-            }
         }
     }
 }
