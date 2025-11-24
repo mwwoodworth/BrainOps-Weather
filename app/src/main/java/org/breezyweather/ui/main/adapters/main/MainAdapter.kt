@@ -39,6 +39,7 @@ import org.breezyweather.ui.main.adapters.main.holder.FooterViewHolder
 import org.breezyweather.ui.main.adapters.main.holder.HeaderViewHolder
 import org.breezyweather.ui.main.adapters.main.holder.HourlyViewHolder
 import org.breezyweather.ui.main.adapters.main.holder.HumidityViewHolder
+import org.breezyweather.ui.main.adapters.main.holder.InteractiveRadarCardViewHolder
 import org.breezyweather.ui.main.adapters.main.holder.MoonViewHolder
 import org.breezyweather.ui.main.adapters.main.holder.PollenViewHolder
 import org.breezyweather.ui.main.adapters.main.holder.PrecipitationNowcastViewHolder
@@ -199,6 +200,7 @@ class MainAdapter(
         ViewType.SUN -> SunViewHolder(parent)
         ViewType.MOON -> MoonViewHolder(parent)
         ViewType.CLOCK -> ClockViewHolder(parent)
+        ViewType.RADAR -> InteractiveRadarCardViewHolder(parent)
         ViewType.FOOTER -> FooterViewHolder(ComposeView(parent.context))
         else -> FooterViewHolder(ComposeView(parent.context))
     }
@@ -280,7 +282,8 @@ class MainAdapter(
             // TODO: #1972 - Remove below when we have figured out how to avoid the touch conflict with the chart
             ViewType.DAILY,
             ViewType.HOURLY,
-            ViewType.PRECIPITATION_NOWCAST
+            ViewType.PRECIPITATION_NOWCAST,
+            ViewType.RADAR
         )
     }
 
@@ -356,6 +359,7 @@ class MainAdapter(
             CardDisplay.CARD_SUN -> ViewType.SUN
             CardDisplay.CARD_MOON -> ViewType.MOON
             CardDisplay.CARD_CLOCK -> ViewType.CLOCK
+            CardDisplay.CARD_RADAR -> ViewType.RADAR
         }
 
         private fun getCardDisplay(viewType: Int): CardDisplay? = when (viewType) {
@@ -373,6 +377,7 @@ class MainAdapter(
             ViewType.SUN -> CardDisplay.CARD_SUN
             ViewType.MOON -> CardDisplay.CARD_MOON
             ViewType.CLOCK -> CardDisplay.CARD_CLOCK
+            ViewType.RADAR -> CardDisplay.CARD_RADAR
             else -> null
         }
     }

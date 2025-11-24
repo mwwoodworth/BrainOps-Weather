@@ -135,4 +135,13 @@
     <!-- Material You -->
     <color name="sys_widget_background">#DCE2F9</color>
 
+    <!-- BrainOps Futuristic Theme -->
+    <color name="brainops_primary">#00E5FF</color> <!-- Cyan Accent -->
+    <color name="brainops_secondary">#2979FF</color> <!-- Deep Blue Accent -->
+    <color name="brainops_surface_glass">#CC1A1B22</color> <!-- Dark Glass -->
+    <color name="brainops_text_primary">#FFFFFF</color>
+    <color name="brainops_text_secondary">#B0BEC5</color>
+    <color name="brainops_gradient_start">#1A237E</color>
+    <color name="brainops_gradient_end">#000000</color>
+
 </resources>

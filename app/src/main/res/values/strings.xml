@@ -1300,4 +1300,5 @@
     <string name="brainops_action_open_dashboard">Open BrainOps</string>
     <string name="brainops_action_login">BrainOps Login</string>
     <string name="brainops_action_sign_out">BrainOps Sign Out</string>
+    <string name="interactive_radar">Interactive Radar</string>
 </resources>

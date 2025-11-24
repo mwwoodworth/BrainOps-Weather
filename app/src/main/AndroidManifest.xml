@@ -84,6 +84,7 @@
         android:name=".BreezyWeather"
         android:supportsRtl="true"
         android:largeHeap="true"
+        android:hardwareAccelerated="true"
         android:localeConfig="@xml/locales_config"
         android:theme="@style/BreezyWeatherTheme"
         android:enableOnBackInvokedCallback="true"

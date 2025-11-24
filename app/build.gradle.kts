@@ -371,6 +371,10 @@ dependencies {
     implementation("io.github.jan-tennert.supabase:gotrue-kt:2.0.0")
     implementation("io.ktor:ktor-client-android:2.3.7")
 
+    // Map SDK (OSMDroid)
+    implementation("org.osmdroid:osmdroid-android:6.1.18")
+    implementation("org.osmdroid:osmdroid-wms:6.1.18")
+
     // utils.
     implementation(libs.suncalc)
     implementation(libs.aboutLibraries)
