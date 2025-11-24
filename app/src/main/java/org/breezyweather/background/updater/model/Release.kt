@@ -33,6 +33,7 @@ data class Release(
     val info: String,
     val releaseLink: String,
     private val assets: List<String>,
+    val prerelease: Boolean = false,
 ) {
 
     /**

@@ -63,7 +63,12 @@ fun RadarControls(
             // Timeline Slider (Customized)
             Slider(
                 value = animationState.progress,
-                onValueChange = { /* Seek logic */ },
+                onValueChange = { newProgress ->
+                    val now = System.currentTimeMillis()
+                    // consistent with RadarActivity: progress 1.0 is LIVE, 0.0 is -1h
+                    val timestamp = now - ((1f - newProgress) * 3600000).toLong()
+                    onTimeSeek(timestamp)
+                },
                 modifier = Modifier
                     .weight(1f)
                     .padding(horizontal = 16.dp),

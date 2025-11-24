@@ -48,7 +48,8 @@ class GetApplicationRelease @Inject constructor(
             return Result.NoNewUpdate
         }
 
-        val release = service.latest(arguments.org, arguments.repository)
+        val isPrerelease = arguments.versionName.contains(Regex("beta|alpha|rc", RegexOption.IGNORE_CASE))
+        val release = service.latest(arguments.org, arguments.repository, onlyStable = !isPrerelease)
 
         SettingsManager.getInstance(context).appUpdateCheckLastTimestamp = now
 
@@ -67,21 +68,28 @@ class GetApplicationRelease @Inject constructor(
         versionName: String,
         versionTag: String,
     ): Boolean {
-        // Removes "v" prefixes
+        // Removes "v" prefixes and non-numeric/dot chars for basic comparison
         val newVersion = versionTag.replace("[^\\d.]".toRegex(), "")
         val oldVersion = versionName.replace("[^\\d.]".toRegex(), "")
 
-        val newSemVer = newVersion.split(".").map { it.toInt() }
-        val oldSemVer = oldVersion.split(".").map { it.toInt() }
+        val newParts = newVersion.split(".").mapNotNull { it.toIntOrNull() }
+        val oldParts = oldVersion.split(".").mapNotNull { it.toIntOrNull() }
 
-        oldSemVer.mapIndexed { index, i ->
-            // Useful in case of pre-releases, where the newer stable version is older than the pre-release
-            if (newSemVer[index] < i) {
-                return false
-            }
-            if (newSemVer[index] > i) {
-                return true
-            }
+        val length = maxOf(newParts.size, oldParts.size)
+        for (i in 0 until length) {
+            val newPart = newParts.getOrElse(i) { 0 }
+            val oldPart = oldParts.getOrElse(i) { 0 }
+            if (newPart > oldPart) return true
+            if (newPart < oldPart) return false
+        }
+
+        // If numeric parts are identical, check if we are upgrading from prerelease to stable
+        // e.g. 6.0.0-beta -> 6.0.0
+        val oldIsPrerelease = versionName.contains(Regex("beta|alpha|rc", RegexOption.IGNORE_CASE))
+        val newIsPrerelease = versionTag.contains(Regex("beta|alpha|rc", RegexOption.IGNORE_CASE))
+
+        if (oldIsPrerelease && !newIsPrerelease) {
+            return true
         }
 
         return false

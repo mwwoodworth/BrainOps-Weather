@@ -15,6 +15,25 @@
 - Pirate Weather - Fix refresh error
 
 
+# Version 6.0.22 (2025-11-24)
+
+**Radar & Maps**
+- Fixed Dark Basemap (CartoDB Dark Matter)
+- Fixed Weather Layers rendering (Precipitation, Clouds, Temperature)
+- Fixed overlay management bug where base map was being cleared
+- Added seek functionality to Radar time slider
+- Fixed Radar Card button functionality
+- Hardware acceleration enabled for smooth 120fps map panning
+
+**Sync & Updates**
+- Fixed GitHub update check 404 error (API endpoint updated)
+- AccuWeather sync verification
+
+**UI/UX**
+- Enhanced Radar UI with dark theme to match app design
+- Improved map interactivity and controls
+
+
 # Version 6.0.12 (2025-11-11)
 
 **This is the last release for Android Lollipop (5.0/5.1) users**

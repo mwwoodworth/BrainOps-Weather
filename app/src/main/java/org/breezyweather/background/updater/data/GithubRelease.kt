@@ -36,6 +36,7 @@ data class GithubRelease(
     @SerialName("body") val info: String,
     @SerialName("html_url") val releaseLink: String,
     @SerialName("assets") val assets: List<GitHubAssets>,
+    @SerialName("prerelease") val prerelease: Boolean = false,
 )
 
 /**
@@ -51,6 +52,7 @@ val releaseMapper: (GithubRelease) -> Release = {
         it.version,
         it.info,
         it.releaseLink,
-        it.assets.map(GitHubAssets::downloadLink)
+        it.assets.map(GitHubAssets::downloadLink),
+        it.prerelease
     )
 }

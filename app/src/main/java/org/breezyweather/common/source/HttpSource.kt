@@ -17,9 +17,20 @@
 package org.breezyweather.common.source
 
 import breezyweather.domain.source.SourceContinent
+import retrofit2.Retrofit
 
 /**
- * TODO: We should inject Retrofit.Builder here, however I still haven’t figure out how to do it yet
+ * Base class for HTTP-based weather sources with dependency injection support.
+ *
+ * Subclasses should inject Retrofit.Builder via Hilt/Dagger with @Named("JsonClient")
+ * and store it in a protected property for API client creation.
+ *
+ * Example:
+ * ```
+ * class MyService @Inject constructor(
+ *     @Named("JsonClient") protected val client: Retrofit.Builder
+ * ) : HttpSource() { ... }
+ * ```
  */
 abstract class HttpSource : Source {
 

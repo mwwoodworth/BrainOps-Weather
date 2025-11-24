@@ -31,15 +31,21 @@ class ReleaseService @Inject constructor(
     @Named("JsonClient") val client: Retrofit.Builder,
 ) {
 
-    suspend fun latest(org: String, repository: String): Release {
+    suspend fun latest(org: String, repository: String, onlyStable: Boolean = false): Release {
         val releases = client
             .baseUrl("https://api.github.com/")
             .build()
             .create(GithubApi::class.java)
             .getReleases(org, repository)
 
-        // Get the first (most recent) release, regardless of prerelease status
-        return releases.firstOrNull()?.let(releaseMapper)
+        val validReleases = if (onlyStable) {
+            releases.filter { !it.prerelease }
+        } else {
+            releases
+        }
+
+        // Get the first (most recent) release
+        return validReleases.firstOrNull()?.let(releaseMapper)
             ?: throw Exception("No releases found")
     }
 }

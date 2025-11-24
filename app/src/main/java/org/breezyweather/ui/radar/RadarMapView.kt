@@ -86,8 +86,12 @@ fun RadarMapView(
 
     // Update Layers
     LaunchedEffect(layers) {
-        // Clear all overlays first
-        mapView.overlays.clear()
+        // Preserve base map (index 0) and clear other overlays (weather layers)
+        if (mapView.overlays.isNotEmpty()) {
+            val baseMap = mapView.overlays[0]
+            mapView.overlays.clear()
+            mapView.overlays.add(baseMap)
+        }
 
         // Add weather layers
         layers.forEach { layer ->

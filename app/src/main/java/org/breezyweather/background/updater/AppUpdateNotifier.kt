@@ -87,6 +87,11 @@ internal class AppUpdateNotifier(
                 context.getString(R.string.action_download),
                 downloadIntent,
             )
+            addAction(
+                android.R.drawable.ic_menu_info_details,
+                context.getString(R.string.action_learn_more),
+                releaseIntent,
+            )
         }
         notificationBuilder.show()
     }

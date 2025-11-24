@@ -30,7 +30,6 @@ kotlinx-serialization-xml = "0.91.3"
 ktlint = "1.8.0"
 #leakcanary = "2.14"
 lifecycle = "2.10.0"
-lifecycle-extensions = "2.2.0"
 material = "1.14.0-alpha07"
 mockk = "1.14.6"
 navigation-compose = "2.9.6"
@@ -100,7 +99,6 @@ kotlinx-serialization-xml-core = { group = "io.github.pdvrieze.xmlutil", name = 
 kotlinx-serialization-xml = { group = "io.github.pdvrieze.xmlutil", name = "serialization", version.ref = "kotlinx-serialization-xml" }
 #leakcanary = { group = "com.squareup.leakcanary", name = "leakcanary-android", version.ref = "leakcanary" }
 lifecycle-common-java8 = { group = "androidx.lifecycle", name = "lifecycle-common-java8", version.ref = "lifecycle" }
-lifecycle-extensions = { group = "androidx.lifecycle", name = "lifecycle-extensions", version.ref = "lifecycle-extensions" }
 lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "lifecycle" }
 lifecycle-reactivestreams-ktx = { group = "androidx.lifecycle", name = "lifecycle-reactivestreams-ktx", version.ref = "lifecycle" }
 lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle" }
@@ -145,7 +143,7 @@ kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", versio
 sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
 
 [bundles]
-lifecycle = ["lifecycle-common-java8", "lifecycle-extensions", "lifecycle-livedata-ktx", "lifecycle-reactivestreams-ktx", "lifecycle-runtime-ktx", "lifecycle-viewmodel-compose", "lifecycle-viewmodel-ktx"]
+lifecycle = ["lifecycle-common-java8", "lifecycle-livedata-ktx", "lifecycle-reactivestreams-ktx", "lifecycle-runtime-ktx", "lifecycle-viewmodel-compose", "lifecycle-viewmodel-ktx"]
 okhttp = ["okhttp-core", "okhttp-logging", "okhttp-tls"]
 retrofit = ["retrofit-adapter-rxjava3", "retrofit-converter-kotlinx-serialization", "retrofit-core"]
 sqldelight = ["sqldelight-android-driver", "sqldelight-coroutines", "sqldelight-android-paging"]
