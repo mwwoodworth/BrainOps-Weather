@@ -43,3 +43,8 @@ bin/
 /currentPosition.properties
 /captures
 /local.properties
+# Release artifacts
+*.apk
+*.apk.idsig
+*.jks
+brainops-release.jks
