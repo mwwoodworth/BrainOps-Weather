@@ -59,11 +59,11 @@ internal class AppUpdateNotifier(
 
     @SuppressLint("LaunchActivityFromNotification")
     fun promptUpdate(release: Release) {
-        /*val updateIntent = NotificationReceiver.downloadAppUpdatePendingBroadcast(
+        val downloadIntent = NotificationReceiver.downloadAppUpdatePendingBroadcast(
             context,
             release.getDownloadLink(),
             release.version,
-        )*/
+        )
 
         val releaseIntent = Intent(Intent.ACTION_VIEW, release.releaseLink.toUri()).run {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -79,21 +79,14 @@ internal class AppUpdateNotifier(
             setContentTitle(context.getString(R.string.notification_app_update_available))
             setContentText(release.version)
             setSmallIcon(android.R.drawable.stat_sys_download_done)
-            // setContentIntent(updateIntent)
-            setContentIntent(releaseIntent)
+            setContentIntent(downloadIntent)
 
             clearActions()
             addAction(
                 android.R.drawable.stat_sys_download_done,
                 context.getString(R.string.action_download),
-                // updateIntent,
-                releaseIntent
+                downloadIntent,
             )
-            /*addAction(
-                R.drawable.ic_info_24dp,
-                context.getString(R.string.whats_new),
-                releaseIntent,
-            )*/
         }
         notificationBuilder.show()
     }

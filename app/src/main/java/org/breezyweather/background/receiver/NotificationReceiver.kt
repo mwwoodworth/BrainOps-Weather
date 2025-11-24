@@ -44,6 +44,8 @@ class NotificationReceiver : BroadcastReceiver() {
         when (intent.action) {
             // Cancel weather update and dismiss notification
             ACTION_CANCEL_WEATHER_UPDATE -> cancelWeatherUpdate(context)
+            // Download app update
+            ACTION_DOWNLOAD_APP_UPDATE -> downloadAppUpdate(context, intent)
         }
     }
 
@@ -65,10 +67,37 @@ class NotificationReceiver : BroadcastReceiver() {
         WeatherUpdateJob.stop(context)
     }
 
+    /**
+     * Method called when user wants to download an app update
+     *
+     * @param context context of application
+     * @param intent intent containing download URL
+     */
+    private fun downloadAppUpdate(context: Context, intent: Intent) {
+        val url = intent.getStringExtra(EXTRA_DOWNLOAD_URL) ?: return
+        val version = intent.getStringExtra(EXTRA_VERSION) ?: "update"
+
+        val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as android.app.DownloadManager
+        val downloadUri = Uri.parse(url)
+
+        val request = android.app.DownloadManager.Request(downloadUri).apply {
+            setTitle("BrainOps Weather $version")
+            setDescription("Downloading update...")
+            setNotificationVisibility(android.app.DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+            setDestinationInExternalPublicDir(android.os.Environment.DIRECTORY_DOWNLOADS, "BrainOps-Weather-$version.apk")
+            setMimeType("application/vnd.android.package-archive")
+        }
+
+        downloadManager.enqueue(request)
+    }
+
     companion object {
         private const val NAME = "NotificationReceiver"
 
         private const val ACTION_CANCEL_WEATHER_UPDATE = "$ID.$NAME.CANCEL_WEATHER_UPDATE"
+        private const val ACTION_DOWNLOAD_APP_UPDATE = "$ID.$NAME.DOWNLOAD_APP_UPDATE"
+        private const val EXTRA_DOWNLOAD_URL = "$ID.$NAME.DOWNLOAD_URL"
+        private const val EXTRA_VERSION = "$ID.$NAME.VERSION"
 
         /**
          * Returns [PendingIntent] that starts a service which stops the weather update
@@ -124,6 +153,28 @@ class NotificationReceiver : BroadcastReceiver() {
             }
 
             context.cancelNotification(notificationId)
+        }
+
+        /**
+         * Returns [PendingIntent] that starts downloading an app update
+         *
+         * @param context context of application
+         * @param url download URL of the APK
+         * @param version version string
+         * @return [PendingIntent]
+         */
+        internal fun downloadAppUpdatePendingBroadcast(context: Context, url: String, version: String): PendingIntent {
+            val intent = Intent(context, NotificationReceiver::class.java).apply {
+                action = ACTION_DOWNLOAD_APP_UPDATE
+                putExtra(EXTRA_DOWNLOAD_URL, url)
+                putExtra(EXTRA_VERSION, version)
+            }
+            return PendingIntent.getBroadcast(
+                context,
+                0,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
         }
 
         /**

@@ -40,17 +40,14 @@ data class Release(
      * @return download link of latest release.
      */
     fun getDownloadLink(): String {
-        val apkVariant = when (Build.SUPPORTED_ABIS[0]) {
-            "arm64-v8a" -> "-arm64-v8a"
-            "armeabi-v7a" -> "-armeabi-v7a"
-            "x86" -> "-x86"
-            "x86_64" -> "-x86_64"
-            else -> ""
-        }
-
+        // For BrainOps Weather, we use universal APKs
+        // Look for: app-basic-universal-release-signed-v*.apk
         return assets.find {
-            it.startsWith("breezy-weather$apkVariant-") && !it.contains("freenet")
-        } ?: assets[0] // FIXME
+            it.contains("universal") && it.endsWith(".apk") && !it.contains("unsigned")
+        } ?: assets.find {
+            // Fallback to any signed APK
+            it.contains("signed") && it.endsWith(".apk")
+        } ?: assets.firstOrNull() ?: ""
     }
 
     /**
