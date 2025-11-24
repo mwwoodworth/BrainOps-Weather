@@ -84,8 +84,8 @@ fun RadarMapView(
         mapView.controller.setCenter(point)
     }
 
-    // Update Layers
-    LaunchedEffect(layers) {
+    // Update Layers - Smart multi-source radar
+    LaunchedEffect(layers, location) {
         // Preserve base map (index 0) and clear other overlays (weather layers)
         if (mapView.overlays.isNotEmpty()) {
             val baseMap = mapView.overlays[0]
@@ -93,18 +93,45 @@ fun RadarMapView(
             mapView.overlays.add(baseMap)
         }
 
-        // Add weather layers
-        layers.forEach { layer ->
-            val tileSource = object : OnlineTileSourceBase(
-                layer.title,
-                0, 18, 256, ".png",
-                arrayOf("https://tile.openweathermap.org/map/${layer.endpoint}/")
-            ) {
-                override fun getTileURLString(pMapTileIndex: Long): String {
-                    val z = MapTileIndex.getZoom(pMapTileIndex)
-                    val x = MapTileIndex.getX(pMapTileIndex)
-                    val y = MapTileIndex.getY(pMapTileIndex)
-                    return "${baseUrl[0]}$z/$x/$y.png?appid=${BuildConfig.OPEN_WEATHER_KEY}"
+        // Add radar layer if precipitation is selected
+        if (layers.any { it.layerId == "precipitation" }) {
+            // Determine if location is in US (use NOAA) or international (use RainViewer)
+            val isUSLocation = location.latitude >= 24.0 && location.latitude <= 50.0 &&
+                              location.longitude >= -125.0 && location.longitude <= -66.0
+
+            val tileSource = if (isUSLocation) {
+                // NOAA NEXRAD Radar - Free forever, high quality, US only
+                object : OnlineTileSourceBase(
+                    "NOAA NEXRAD Radar",
+                    0, 18, 256, ".png",
+                    arrayOf(
+                        "https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913/",
+                        "https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913/"
+                    )
+                ) {
+                    override fun getTileURLString(pMapTileIndex: Long): String {
+                        val z = MapTileIndex.getZoom(pMapTileIndex)
+                        val x = MapTileIndex.getX(pMapTileIndex)
+                        val y = MapTileIndex.getY(pMapTileIndex)
+                        return "${baseUrl[0]}$z/$x/$y.png"
+                    }
+                }
+            } else {
+                // RainViewer - Free globally, no API key
+                object : OnlineTileSourceBase(
+                    "RainViewer Radar",
+                    0, 10, 256, ".png",
+                    arrayOf(
+                        "https://tilecache.rainviewer.com/v2/radar/",
+                        "https://tilecache.rainviewer.com/v2/radar/"
+                    )
+                ) {
+                    override fun getTileURLString(pMapTileIndex: Long): String {
+                        val z = MapTileIndex.getZoom(pMapTileIndex)
+                        val x = MapTileIndex.getX(pMapTileIndex)
+                        val y = MapTileIndex.getY(pMapTileIndex)
+                        return "${baseUrl[0]}nowcast/256/$z/$x/$y/1/1_0.png"
+                    }
                 }
             }
 

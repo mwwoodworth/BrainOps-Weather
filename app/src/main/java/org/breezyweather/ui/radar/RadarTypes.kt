@@ -1,11 +1,10 @@
 package org.breezyweather.ui.radar
 
 enum class RadarLayer(val layerId: String, val title: String, val endpoint: String) {
-    PRECIPITATION("precipitation", "Precipitation", "precipitation_new"),
-    CLOUDS("clouds", "Clouds", "clouds_new"),
-    TEMPERATURE("temperature", "Temperature", "temp_new"),
-    WIND("wind", "Wind", "wind_new"),
-    PRESSURE("pressure", "Pressure", "pressure_new")
+    PRECIPITATION("precipitation", "Radar", "nexrad")
+    // Uses NOAA NEXRAD for US locations (free forever)
+    // Uses RainViewer for international locations (free)
+    // No API key required for either source
 }
 
 data class RadarAnimationState(
