@@ -38,110 +38,151 @@ fun InteractiveRadarCard(
                 // Launch full-screen radar activity
                 onExpandClick?.invoke() ?: IntentHelper.startRadarActivity(context, location)
             },
-        elevation = CardDefaults.elevatedCardElevation(2.dp),
-        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.elevatedCardElevation(0.dp), // Flat for modern look
+        shape = RoundedCornerShape(20.dp), // Larger radius like Overdrop
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = colorResource(R.color.darkPrimary_5) // Deep dark background
         )
     ) {
-        Column {
-            // Header with expand icon
+        Column(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            // Header with premium styling
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .background(colorResource(R.color.darkPrimary_4)) // Slightly lighter header
+                    .padding(horizontal = 16.dp, vertical = 14.dp)
             ) {
-                Text(
-                    text = "Weather Radar",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Text(
-                        text = "Tap to expand",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    // Radar icon indicator
+                    Box(
+                        modifier = Modifier
+                            .size(6.dp)
+                            .background(
+                                colorResource(R.color.brainops_primary),
+                                shape = RoundedCornerShape(3.dp)
+                            )
                     )
-                    Icon(
-                        imageVector = Icons.Default.ZoomOutMap,
-                        contentDescription = "Expand",
-                        tint = colorResource(R.color.brainops_primary),
-                        modifier = Modifier.size(20.dp)
+                    Text(
+                        text = "Weather Radar",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.SemiBold
+                        ),
+                        color = colorResource(R.color.brainops_text_primary)
                     )
                 }
+                Icon(
+                    imageVector = Icons.Default.ZoomOutMap,
+                    contentDescription = "Expand",
+                    tint = colorResource(R.color.brainops_primary),
+                    modifier = Modifier.size(22.dp)
+                )
             }
 
-            // Static preview map (non-interactive in card)
+            // Radar map preview
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
+                    .height(220.dp)
             ) {
                 RadarMapView(
                     location = location,
                     layers = listOf(RadarLayer.PRECIPITATION),
                     animationState = RadarAnimationState(),
                     onLayerToggle = {},
-                    isInteractive = false // Disable interactions in preview
+                    isInteractive = false
                 )
 
-                // Overlay with "Tap to view interactive radar" hint
+                // Subtle gradient overlay for depth
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.1f)),
-                    contentAlignment = Alignment.Center
+                        .background(
+                            androidx.compose.ui.graphics.Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.Transparent,
+                                    Color.Black.copy(alpha = 0.05f)
+                                )
+                            )
+                        )
+                )
+
+                // Tap hint - minimal and elegant
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .background(
+                            color = colorResource(R.color.brainops_surface_glass),
+                            shape = RoundedCornerShape(24.dp)
+                        )
+                        .padding(horizontal = 20.dp, vertical = 10.dp)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier
-                            .background(
-                                color = Color.Black.copy(alpha = 0.7f),
-                                shape = RoundedCornerShape(20.dp)
-                            )
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.ZoomOutMap,
                             contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(16.dp)
+                            tint = colorResource(R.color.brainops_primary),
+                            modifier = Modifier.size(18.dp)
                         )
                         Text(
-                            text = "Tap to view interactive radar",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color.White,
-                            fontWeight = FontWeight.Medium
+                            text = "Tap for full radar",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontWeight = FontWeight.Medium
+                            ),
+                            color = colorResource(R.color.brainops_text_primary)
                         )
                     }
                 }
             }
 
-            // Live indicator
+            // Status bar - sleek and informative
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f))
-                    .padding(12.dp),
+                    .background(colorResource(R.color.darkPrimary_4))
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .background(colorResource(R.color.brainops_primary), shape = RoundedCornerShape(4.dp))
-                )
-                Spacer(modifier = Modifier.width(8.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // Pulsing live indicator
+                    Box(
+                        modifier = Modifier
+                            .size(7.dp)
+                            .background(
+                                colorResource(R.color.brainops_primary),
+                                shape = RoundedCornerShape(4.dp)
+                            )
+                    )
+                    Text(
+                        text = "LIVE",
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontWeight = FontWeight.Bold
+                        ),
+                        color = colorResource(R.color.brainops_primary)
+                    )
+                    Text(
+                        text = "Precipitation",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = colorResource(R.color.brainops_text_secondary)
+                    )
+                }
                 Text(
-                    text = "LIVE • Precipitation radar",
+                    text = "Updated now",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = colorResource(R.color.brainops_text_secondary)
                 )
             }
         }

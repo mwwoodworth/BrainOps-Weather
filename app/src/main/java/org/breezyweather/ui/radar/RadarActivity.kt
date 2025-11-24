@@ -83,11 +83,17 @@ fun FullScreenRadarScreen(
             TopAppBar(
                 title = {
                     Column {
-                        Text("Weather Radar")
+                        Text(
+                            text = "Weather Radar",
+                            color = colorResource(R.color.brainops_text_primary),
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
+                            )
+                        )
                         Text(
                             text = location.city,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = colorResource(R.color.brainops_text_secondary)
                         )
                     }
                 },
@@ -95,7 +101,8 @@ fun FullScreenRadarScreen(
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = "Back",
+                            tint = colorResource(R.color.brainops_text_primary)
                         )
                     }
                 },
@@ -105,15 +112,16 @@ fun FullScreenRadarScreen(
                             imageVector = Icons.Default.Layers,
                             contentDescription = "Layers",
                             tint = if (showLayerSelector) colorResource(R.color.brainops_primary)
-                                   else MaterialTheme.colorScheme.onSurface
+                                   else colorResource(R.color.brainops_text_primary)
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+                    containerColor = colorResource(R.color.darkPrimary_5)
                 )
             )
-        }
+        },
+        containerColor = colorResource(R.color.darkPrimary_5)
     ) { paddingValues ->
         Box(
             modifier = Modifier
@@ -170,25 +178,48 @@ fun LayerSelectorOverlay(
     modifier: Modifier = Modifier
 ) {
     Surface(
-        modifier = modifier.width(200.dp),
-        shape = MaterialTheme.shapes.medium,
-        color = colorResource(R.color.brainops_surface_glass),
-        tonalElevation = 8.dp
+        modifier = modifier.width(220.dp),
+        shape = RoundedCornerShape(16.dp),
+        color = colorResource(R.color.darkPrimary_4),
+        tonalElevation = 0.dp,
+        shadowElevation = 8.dp
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text(
-                text = "Radar Layers",
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(4.dp)
+                        .background(
+                            colorResource(R.color.brainops_primary),
+                            shape = RoundedCornerShape(2.dp)
+                        )
+                )
+                Text(
+                    text = "Radar Layers",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
+                    ),
+                    color = colorResource(R.color.brainops_text_primary)
+                )
+            }
 
             RadarLayer.values().forEach { layer ->
                 val isSelected = selectedLayers.contains(layer)
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            if (isSelected) colorResource(R.color.darkPrimary_5)
+                            else Color.Transparent,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .padding(horizontal = 8.dp, vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
@@ -196,7 +227,7 @@ fun LayerSelectorOverlay(
                         text = layer.title,
                         style = MaterialTheme.typography.bodyMedium,
                         color = if (isSelected) colorResource(R.color.brainops_primary)
-                               else MaterialTheme.colorScheme.onSurface
+                               else colorResource(R.color.brainops_text_secondary)
                     )
                     Switch(
                         checked = isSelected,
@@ -208,7 +239,9 @@ fun LayerSelectorOverlay(
                         },
                         colors = SwitchDefaults.colors(
                             checkedThumbColor = colorResource(R.color.brainops_primary),
-                            checkedTrackColor = colorResource(R.color.brainops_primary).copy(alpha = 0.5f)
+                            checkedTrackColor = colorResource(R.color.brainops_primary).copy(alpha = 0.4f),
+                            uncheckedThumbColor = colorResource(R.color.brainops_text_secondary),
+                            uncheckedTrackColor = colorResource(R.color.darkPrimary_3)
                         )
                     )
                 }
