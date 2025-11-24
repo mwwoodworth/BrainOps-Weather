@@ -53,6 +53,7 @@ android {
             versionNameSuffix = "-r${getCommitCount()}"
             buildConfigField("String", "DEV_API_KEY", "\"brainops_dev_key_2025\"")
             buildConfigField("String", "DEFAULT_TENANT_ID", "\"51e728c5-94e8-4ae0-8a0a-6a08d1fb3457\"")
+            buildConfigField("String", "OPEN_WEATHER_KEY", "\"63adafcfb0c3318dac0e2f16031603ab\"")
         }
         named("release") {
             isShrinkResources = true
@@ -62,6 +63,7 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             buildConfigField("String", "DEV_API_KEY", "\"\"")
             buildConfigField("String", "DEFAULT_TENANT_ID", "\"\"")
+            buildConfigField("String", "OPEN_WEATHER_KEY", "\"63adafcfb0c3318dac0e2f16031603ab\"")
         }
     }
 
