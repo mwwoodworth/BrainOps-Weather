@@ -1,6 +1,5 @@
 package org.breezyweather.ui.radar
 
-import android.preference.PreferenceManager
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -9,6 +8,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.preference.PreferenceManager
 import breezyweather.domain.location.model.Location
 import org.breezyweather.BuildConfig
 import org.osmdroid.config.Configuration
@@ -28,7 +28,7 @@ fun RadarMapView(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    
+
     // Initialize OSMDroid configuration
     LaunchedEffect(Unit) {
         Configuration.getInstance().load(context, PreferenceManager.getDefaultSharedPreferences(context))

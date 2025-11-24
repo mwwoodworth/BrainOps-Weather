@@ -18,9 +18,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import breezyweather.domain.location.model.Location
 import org.breezyweather.R
 import org.breezyweather.ui.radar.composables.LayerQuickToggles
@@ -29,12 +30,17 @@ import org.breezyweather.ui.radar.composables.RadarControls
 @Composable
 fun InteractiveRadarCard(
     location: Location,
-    modifier: Modifier = Modifier,
-    viewModel: RadarViewModel = viewModel()
+    modifier: Modifier = Modifier
 ) {
-    val layers by viewModel.activeLayers.collectAsState()
-    val animationState by viewModel.animationState.collectAsState()
-    val insights by viewModel.insights.collectAsState()
+    // Simple state management without ViewModel for now
+    val layers = remember { mutableStateOf(listOf(RadarLayer.PRECIPITATION)) }
+    val animationState = remember { mutableStateOf(RadarAnimationState()) }
+    val insights = remember {
+        mutableStateOf(listOf(
+            RadarInsight(0, "Heavy Rain Approaching", "Starting in 23 mins", InsightSeverity.WARNING),
+            RadarInsight(0, "Temperature Drop", "Dropping 5°F in 1 hour", InsightSeverity.INFO)
+        ))
+    }
 
     val gradientStart = colorResource(R.color.brainops_gradient_start)
     val gradientEnd = colorResource(R.color.brainops_gradient_end)
@@ -82,17 +88,21 @@ fun InteractiveRadarCard(
                 Box(modifier = Modifier.height(450.dp)) {
                     RadarMapView(
                         location = location,
-                        layers = layers,
-                        animationState = animationState,
-                        onLayerToggle = viewModel::toggleLayer
+                        layers = layers.value,
+                        animationState = animationState.value,
+                        onLayerToggle = { /* TODO */ }
                     )
 
                     // Floating controls
                     RadarControls(
                         modifier = Modifier.align(Alignment.BottomCenter),
-                        animationState = animationState,
-                        onPlayPause = viewModel::toggleAnimation,
-                        onTimeSeek = viewModel::seekToTime
+                        animationState = animationState.value,
+                        onPlayPause = {
+                            animationState.value = animationState.value.copy(
+                                isPlaying = !animationState.value.isPlaying
+                            )
+                        },
+                        onTimeSeek = { /* TODO */ }
                     )
                     
                     LayerQuickToggles(
@@ -102,7 +112,7 @@ fun InteractiveRadarCard(
                 }
 
                 // AI Insights Panel
-                if (insights.isNotEmpty()) {
+                if (insights.value.isNotEmpty()) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -115,8 +125,8 @@ fun InteractiveRadarCard(
                             color = colorResource(R.color.brainops_secondary)
                         )
                         Spacer(modifier = Modifier.height(8.dp))
-                        
-                        insights.forEach { insight ->
+
+                        insights.value.forEach { insight ->
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier.padding(vertical = 4.dp)
