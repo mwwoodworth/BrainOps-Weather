@@ -48,3 +48,5 @@ bin/
 *.apk.idsig
 *.jks
 brainops-release.jks
+*.jks
+KEYSTORE_PASSWORD.txt
