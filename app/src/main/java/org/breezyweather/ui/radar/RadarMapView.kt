@@ -25,7 +25,8 @@ fun RadarMapView(
     layers: List<RadarLayer>,
     animationState: RadarAnimationState,
     onLayerToggle: (RadarLayer) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isInteractive: Boolean = true
 ) {
     val context = LocalContext.current
 
@@ -35,16 +36,16 @@ fun RadarMapView(
         Configuration.getInstance().userAgentValue = BuildConfig.APPLICATION_ID
     }
 
-    // Create dark themed basemap tile source
+    // Create VERY dark basemap like TodayWeather/OpenDrop
     val darkBasemap = remember {
         object : OnlineTileSourceBase(
-            "CartoDB Dark Matter",
+            "Dark Simple",
             0, 20, 256, ".png",
             arrayOf(
-                "https://a.basemaps.cartocdn.com/dark_all/",
-                "https://b.basemaps.cartocdn.com/dark_all/",
-                "https://c.basemaps.cartocdn.com/dark_all/",
-                "https://d.basemaps.cartocdn.com/dark_all/"
+                "https://a.basemaps.cartocdn.com/dark_nolabels/",
+                "https://b.basemaps.cartocdn.com/dark_nolabels/",
+                "https://c.basemaps.cartocdn.com/dark_nolabels/",
+                "https://d.basemaps.cartocdn.com/dark_nolabels/"
             )
         ) {
             override fun getTileURLString(pMapTileIndex: Long): String {
@@ -58,9 +59,13 @@ fun RadarMapView(
 
     val mapView = remember {
         MapView(context).apply {
-            setTileSource(darkBasemap) // Dark themed basemap for better contrast
-            setMultiTouchControls(true)
+            setTileSource(darkBasemap) // Very dark, simple basemap
+            setMultiTouchControls(isInteractive)
             controller.setZoom(10.0)
+            // Disable scroll if not interactive
+            if (!isInteractive) {
+                setOnTouchListener { _, _ -> true } // Consume all touches
+            }
         }
     }
 

@@ -233,6 +233,16 @@ object IntentHelper {
         )
     }
 
+    fun startRadarActivity(context: Context, location: Location) {
+        context.startActivity(
+            Intent(context, org.breezyweather.ui.radar.RadarActivity::class.java).apply {
+                putExtra("latitude", location.latitude.toDouble())
+                putExtra("longitude", location.longitude.toDouble())
+                putExtra("locationName", location.city)
+            }
+        )
+    }
+
     private fun isIntentAvailable(context: Context, intent: Intent): Boolean {
         return context.packageManager
             .queryIntentActivities(intent, PackageManager.GET_ACTIVITIES)
