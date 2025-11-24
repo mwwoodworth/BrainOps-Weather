@@ -85,7 +85,7 @@ fun RadarMapView(
                     val z = MapTileIndex.getZoom(pMapTileIndex)
                     val x = MapTileIndex.getX(pMapTileIndex)
                     val y = MapTileIndex.getY(pMapTileIndex)
-                    return "$baseUrl$z/$x/$y.png?appid=${BuildConfig.OPEN_WEATHER_KEY}"
+                    return "${baseUrl[0]}$z/$x/$y.png?appid=${BuildConfig.OPEN_WEATHER_KEY}"
                 }
             }
 
