@@ -272,49 +272,6 @@ internal fun AboutScreen(
                 }
             }
 
-            largeSeparatorItem()
-            item { SectionTitle(stringResource(R.string.about_contributors)) }
-            itemsIndexed(appContributors) { index, item ->
-                ContributorView(
-                    name = item.name,
-                    contribution = item.contribution,
-                    isFirst = index == 0,
-                    isLast = index == appContributors.lastIndex
-                ) {
-                    linkToOpen.value = item.link
-                    if (linkToOpen.value.isNotEmpty()) {
-                        dialogLinkOpenState.value = true
-                    }
-                }
-                if (index != appContributors.lastIndex) {
-                    SmallSeparatorItem()
-                }
-            }
-
-            largeSeparatorItem()
-            item { SectionTitle(stringResource(R.string.about_translators)) }
-            itemsIndexed(filteredTranslators) { index, item ->
-                ContributorView(
-                    name = item.name,
-                    isFirst = index == 0,
-                    isLast = index == filteredTranslators.lastIndex
-                ) {
-                    linkToOpen.value = when {
-                        !item.github.isNullOrEmpty() -> "https://github.com/${item.github}"
-                        !item.weblate.isNullOrEmpty() -> "https://hosted.weblate.org/user/${item.weblate}/"
-                        !item.mail.isNullOrEmpty() -> "mailto:${item.mail}"
-                        !item.url.isNullOrEmpty() -> item.url
-                        else -> ""
-                    }
-                    if (linkToOpen.value.isNotEmpty()) {
-                        dialogLinkOpenState.value = true
-                    }
-                }
-                if (index != filteredTranslators.lastIndex) {
-                    SmallSeparatorItem()
-                }
-            }
-
             bottomInsetItem(
                 extraHeight = getCardListItemMarginDp(context).dp
             )

@@ -58,10 +58,15 @@ fun RadarMapView(
     LaunchedEffect(Unit) {
         while (true) {
             val ts = fetchLatestRainViewerTimestamp()
-            if (ts != null && ts != rainViewerTimestamp) {
-                rainViewerTimestamp = ts
+            if (ts != null) {
+                if (ts != rainViewerTimestamp) {
+                    rainViewerTimestamp = ts
+                }
+                kotlinx.coroutines.delay(5 * 60 * 1000L) // 5 minutes
+            } else {
+                // Retry quickly if fetch failed
+                kotlinx.coroutines.delay(5_000L)
             }
-            kotlinx.coroutines.delay(5 * 60 * 1000L) // 5 minutes
         }
     }
 
@@ -91,18 +96,18 @@ fun RadarMapView(
 
     val mapView = remember {
         MapView(context).apply {
-            // Set a safe default basemap immediately to avoid blank tiles
-            setTileSource(TileSourceFactory.MAPNIK)
+            // Default basemap will be set in theme effect below
             setMultiTouchControls(isInteractive)
             controller.setZoom(9.5)
-            // RainViewer tiles top out at zoom 10; keep map from requesting higher zoom levels.
-            maxZoomLevel = 10.0
+            // Allow deep zooming (NOAA/DarkMatter go up to 18-20)
+            maxZoomLevel = 19.0
 
             // Performance optimizations for 120fps+ on high-end devices
             setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null)
             isFlingEnabled = true
             setScrollableAreaLimitDouble(null) // No limit for smooth panning
             setUseDataConnection(true)
+            setTilesScaledToDpi(true) // Crisper text on high DPI screens
 
             // Disable scroll if not interactive
             if (!isInteractive) {
