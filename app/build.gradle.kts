@@ -372,6 +372,8 @@ dependencies {
     // utils.
     implementation(libs.suncalc)
     implementation(libs.aboutLibraries)
+    // Provide SLF4J binding to satisfy R8/linking
+    runtimeOnly("org.slf4j:slf4j-simple:1.7.36")
 
     // Allows reflection of the relative time class to pass Locale as parameter
     implementation(libs.restrictionBypass)
