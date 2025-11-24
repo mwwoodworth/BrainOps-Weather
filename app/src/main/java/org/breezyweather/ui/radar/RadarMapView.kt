@@ -4,13 +4,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.preference.PreferenceManager
 import breezyweather.domain.location.model.Location
 import org.breezyweather.BuildConfig
+import org.json.JSONArray
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.MapTileProviderBasic
 import org.osmdroid.tileprovider.tilesource.OnlineTileSourceBase
@@ -19,6 +23,11 @@ import org.osmdroid.util.GeoPoint
 import org.osmdroid.util.MapTileIndex
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.TilesOverlay
+import android.util.Log
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.net.HttpURLConnection
+import java.net.URL
 
 @Composable
 fun RadarMapView(
@@ -30,11 +39,15 @@ fun RadarMapView(
     isInteractive: Boolean = true
 ) {
     val context = LocalContext.current
+    var rainViewerTimestamp by remember { mutableStateOf<Long?>(null) }
 
     // Initialize OSMDroid configuration
     LaunchedEffect(Unit) {
         Configuration.getInstance().load(context, PreferenceManager.getDefaultSharedPreferences(context))
         Configuration.getInstance().userAgentValue = BuildConfig.APPLICATION_ID
+
+        // Pre-fetch latest RainViewer timestamp to avoid 404/empty tiles
+        rainViewerTimestamp = fetchLatestRainViewerTimestamp()
     }
 
     // Create dark OSM tile source - CartoDB Dark Matter
@@ -118,9 +131,14 @@ fun RadarMapView(
                 }
             } else {
                 // RainViewer - Free globally, no API key
+                val timestamp = rainViewerTimestamp
+                if (timestamp == null) {
+                    Log.w("RadarMapView", "RainViewer timestamp unavailable; skipping radar overlay.")
+                    null
+                } else
                 object : OnlineTileSourceBase(
                     "RainViewer Radar",
-                    0, 10, 256, ".png",
+                    0, 12, 256, ".png",
                     arrayOf(
                         "https://tilecache.rainviewer.com/v2/radar/",
                         "https://tilecache.rainviewer.com/v2/radar/"
@@ -130,19 +148,22 @@ fun RadarMapView(
                         val z = MapTileIndex.getZoom(pMapTileIndex)
                         val x = MapTileIndex.getX(pMapTileIndex)
                         val y = MapTileIndex.getY(pMapTileIndex)
-                        return "${baseUrl[0]}nowcast/256/$z/$x/$y/1/1_0.png"
+                        // RainViewer requires a valid timestamp; we use the freshest frame.
+                        return "${baseUrl[0]}$timestamp/256/$z/$x/$y/2/1_1.png"
                     }
                 }
             }
 
-            val tileProvider = MapTileProviderBasic(context)
-            tileProvider.tileSource = tileSource
+            if (tileSource != null) {
+                val tileProvider = MapTileProviderBasic(context)
+                tileProvider.tileSource = tileSource
 
-            val overlay = TilesOverlay(tileProvider, context)
-            overlay.loadingBackgroundColor = android.graphics.Color.TRANSPARENT
-            overlay.loadingLineColor = android.graphics.Color.TRANSPARENT
-            overlay.setLoadingDrawable(null) // No loading indicator
-            mapView.overlays.add(overlay)
+                val overlay = TilesOverlay(tileProvider, context)
+                overlay.loadingBackgroundColor = android.graphics.Color.TRANSPARENT
+                overlay.loadingLineColor = android.graphics.Color.TRANSPARENT
+                overlay.setLoadingDrawable(null) // No loading indicator
+                mapView.overlays.add(overlay)
+            }
         }
 
         // Force redraw
@@ -159,5 +180,27 @@ fun RadarMapView(
         onDispose {
             mapView.onDetach()
         }
+    }
+}
+
+/**
+ * Fetches the most recent RainViewer radar frame timestamp so tile requests resolve (avoids 404s).
+ */
+private suspend fun fetchLatestRainViewerTimestamp(): Long? = withContext(Dispatchers.IO) {
+    val url = URL("https://tilecache.rainviewer.com/api/maps.json")
+    return@withContext try {
+        val connection = (url.openConnection() as HttpURLConnection).apply {
+            connectTimeout = 5000
+            readTimeout = 5000
+        }
+        connection.inputStream.bufferedReader().use { reader ->
+            val body = reader.readText()
+            val timestamps = JSONArray(body)
+            // Use the newest frame (last in array)
+            timestamps.optLong(timestamps.length() - 1)
+        }
+    } catch (e: Exception) {
+        Log.e("RadarMapView", "Failed to fetch RainViewer timestamps", e)
+        null
     }
 }

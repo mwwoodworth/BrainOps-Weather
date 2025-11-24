@@ -17,15 +17,24 @@
 package org.breezyweather.background.updater.data
 
 import retrofit2.http.GET
+import retrofit2.http.Headers
 import retrofit2.http.Path
 
 /**
  * GitHub API
  */
 interface GithubApi {
+    @Headers("Accept: application/vnd.github+json")
     @GET("repos/{org}/{repository}/releases")
     suspend fun getReleases(
         @Path("org") org: String,
         @Path("repository") repository: String,
     ): List<GithubRelease>
+
+    @Headers("Accept: application/vnd.github+json")
+    @GET("repos/{org}/{repository}/releases/latest")
+    suspend fun getLatestRelease(
+        @Path("org") org: String,
+        @Path("repository") repository: String,
+    ): GithubRelease
 }

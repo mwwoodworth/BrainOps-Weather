@@ -18,6 +18,7 @@ package org.breezyweather.background.updater.data
 
 import org.breezyweather.background.updater.model.Release
 import retrofit2.Retrofit
+import retrofit2.HttpException
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -32,19 +33,27 @@ class ReleaseService @Inject constructor(
 ) {
 
     suspend fun latest(org: String, repository: String, onlyStable: Boolean = false): Release {
-        val releases = client
+        val api = client
             .baseUrl("https://api.github.com/")
             .build()
             .create(GithubApi::class.java)
-            .getReleases(org, repository)
 
-        val validReleases = if (onlyStable) {
-            releases.filter { !it.prerelease }
-        } else {
-            releases
+        // Prefer the GitHub "latest" endpoint to avoid pagination and weird ordering.
+        if (onlyStable) {
+            try {
+                return releaseMapper(api.getLatestRelease(org, repository))
+            } catch (e: Exception) {
+                // Fall back to full release list (includes prereleases) if latest fails.
+                if (e !is HttpException || e.code() != 404) {
+                    // For any non-404 (rate limit, network), rethrow so caller can handle.
+                    throw e
+                }
+            }
         }
 
-        // Get the first (most recent) release
+        val releases = api.getReleases(org, repository)
+        val validReleases = if (onlyStable) releases.filter { !it.prerelease } else releases
+
         return validReleases.firstOrNull()?.let(releaseMapper)
             ?: throw Exception("No releases found")
     }

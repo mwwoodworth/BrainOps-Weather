@@ -21,6 +21,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import org.breezyweather.background.updater.data.ReleaseService
 import org.breezyweather.background.updater.model.Release
 import org.breezyweather.domain.settings.SettingsManager
+import android.util.Log
 import java.util.Date
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.days
@@ -49,7 +50,13 @@ class GetApplicationRelease @Inject constructor(
         }
 
         val isPrerelease = arguments.versionName.contains(Regex("beta|alpha|rc", RegexOption.IGNORE_CASE))
-        val release = service.latest(arguments.org, arguments.repository, onlyStable = !isPrerelease)
+        val release = try {
+            service.latest(arguments.org, arguments.repository, onlyStable = !isPrerelease)
+        } catch (e: Exception) {
+            Log.w("AppUpdateChecker", "Failed to fetch latest release", e)
+            SettingsManager.getInstance(context).appUpdateCheckLastTimestamp = now
+            return Result.NoNewUpdate
+        }
 
         SettingsManager.getInstance(context).appUpdateCheckLastTimestamp = now
 
