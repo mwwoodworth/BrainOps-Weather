@@ -2,8 +2,8 @@
 
 import breezy.buildlogic.getCommitCount
 import breezy.buildlogic.getGitSha
-import breezy.buildlogic.registerLocalesConfigTask
 import java.util.Properties
+import java.util.Locale
 
 plugins {
     id("breezy.android.application")
@@ -17,13 +17,45 @@ plugins {
 
 val supportedAbi = setOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
 
+// Generate locale config before resource linking so AndroidManifest.xml can reference it
+val generateLocalesConfig = tasks.register("generateLocalesConfig") {
+    val emptyResourcesElement = "<resources>\\s*</resources>|<resources/>".toRegex()
+    val valuesPrefix = "values(-(b\\+)?)?".toRegex()
+
+    val languages = fileTree("$projectDir/src/main/res/")
+        .matching { include("**/strings.xml") }
+        .filterNot { it.readText().contains(emptyResourcesElement) }
+        .map { it.parentFile.name }
+        .sorted()
+        .joinToString(separator = "\n") {
+            val language = it
+                .replace(valuesPrefix, "")
+                .replace("-r", "-")
+                .replace("+", "-")
+                .takeIf(String::isNotBlank) ?: "en"
+            "|    <locale android:name=\"$language\" />"
+        }
+
+    val content = """
+        |<?xml version="1.0" encoding="utf-8"?>
+        |<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+        $languages
+        |</locale-config>
+    """.trimMargin()
+
+    val localeFile = file("$projectDir/src/main/res/xml/locales_config.xml")
+    localeFile.parentFile.mkdirs()
+    localeFile.writeText(content)
+}
+tasks.named("preBuild") { dependsOn(generateLocalesConfig) }
+
 android {
     namespace = "org.breezyweather"
 
     defaultConfig {
         applicationId = "org.breezyweather"
-        versionCode = 60023
-        versionName = "6.0.23"
+        versionCode = 60024
+        versionName = "6.0.24"
 
         buildConfigField("String", "COMMIT_COUNT", "\"${getCommitCount()}\"")
         buildConfigField("String", "COMMIT_SHA", "\"${getGitSha()}\"")
@@ -393,7 +425,7 @@ dependencies {
 tasks {
     // May be too heavy to run, so let’s keep the generated file in Git
     // val naturalEarthConfigTask = registerNaturalEarthConfigTask(project)
-    val localesConfigTask = registerLocalesConfigTask(project)
+    val localesConfigTask = generateLocalesConfig
 
     // Duplicating Hebrew string assets due to some locale code issues on different devices
     val copyHebrewStrings by registering(Copy::class) {
