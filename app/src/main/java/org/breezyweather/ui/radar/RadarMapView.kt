@@ -25,12 +25,17 @@ import org.osmdroid.util.MapTileIndex
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.TilesOverlay
 import android.util.Log
+import android.view.Choreographer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.delay
 import java.net.HttpURLConnection
 import java.net.URL
 
+/**
+ * High-performance radar map view optimized for 120Hz+ displays.
+ * Uses RainViewer for international locations and NOAA NEXRAD for US locations.
+ */
 @Composable
 fun RadarMapView(
     location: Location,
@@ -38,34 +43,55 @@ fun RadarMapView(
     animationState: RadarAnimationState,
     onLayerToggle: (RadarLayer) -> Unit,
     modifier: Modifier = Modifier,
-    isInteractive: Boolean = true
+    isInteractive: Boolean = true,
+    onTimestampsLoaded: ((List<Long>) -> Unit)? = null
 ) {
     val context = LocalContext.current
-    var rainViewerTimestamp by remember { mutableStateOf<Long?>(null) }
+    // Store all available radar timestamps for animation
+    var radarTimestamps by remember { mutableStateOf<List<Long>>(emptyList()) }
+    var currentFrameIndex by remember { mutableStateOf(-1) }
     var radarOverlay: TilesOverlay? by remember { mutableStateOf(null) }
     val isDark = isSystemInDarkTheme()
 
-    // Initialize OSMDroid configuration
+    // Initialize OSMDroid configuration with 120Hz optimizations
     LaunchedEffect(Unit) {
         Configuration.getInstance().load(context, PreferenceManager.getDefaultSharedPreferences(context))
         Configuration.getInstance().userAgentValue = BuildConfig.APPLICATION_ID
+        // Increase tile download threads for faster loading
+        Configuration.getInstance().tileDownloadThreads = 6
+        Configuration.getInstance().tileFileSystemThreads = 4
+        // Larger cache for smoother animation
+        Configuration.getInstance().tileFileSystemCacheMaxBytes = 100L * 1024 * 1024 // 100MB
+        Configuration.getInstance().tileFileSystemCacheTrimBytes = 80L * 1024 * 1024 // 80MB trim
 
-        // Pre-fetch latest RainViewer timestamp to avoid 404/empty tiles
-        rainViewerTimestamp = fetchLatestRainViewerTimestamp()
+        // Fetch all available RainViewer timestamps for animation
+        val timestamps = fetchAllRainViewerTimestamps()
+        if (timestamps.isNotEmpty()) {
+            radarTimestamps = timestamps
+            currentFrameIndex = timestamps.size - 1 // Start at most recent
+            onTimestampsLoaded?.invoke(timestamps)
+        }
     }
 
-    // Periodically refresh radar timestamp so new frames show up
+    // Periodically refresh radar timestamps so new frames show up
     LaunchedEffect(Unit) {
         while (true) {
-            val ts = fetchLatestRainViewerTimestamp()
-            if (ts != null) {
-                if (ts != rainViewerTimestamp) {
-                    rainViewerTimestamp = ts
-                }
-                kotlinx.coroutines.delay(5 * 60 * 1000L) // 5 minutes
-            } else {
-                // Retry quickly if fetch failed
-                kotlinx.coroutines.delay(5_000L)
+            kotlinx.coroutines.delay(2 * 60 * 1000L) // 2 minutes - more frequent updates
+            val timestamps = fetchAllRainViewerTimestamps()
+            if (timestamps.isNotEmpty() && timestamps != radarTimestamps) {
+                radarTimestamps = timestamps
+                onTimestampsLoaded?.invoke(timestamps)
+            }
+        }
+    }
+
+    // Update frame based on animation progress
+    LaunchedEffect(animationState.progress, radarTimestamps) {
+        if (radarTimestamps.isNotEmpty()) {
+            val newIndex = ((animationState.progress * (radarTimestamps.size - 1)).toInt())
+                .coerceIn(0, radarTimestamps.size - 1)
+            if (newIndex != currentFrameIndex) {
+                currentFrameIndex = newIndex
             }
         }
     }
@@ -128,8 +154,8 @@ fun RadarMapView(
         mapView.invalidate()
     }
 
-    // Update Layers - Smart multi-source radar
-    LaunchedEffect(layers, location, rainViewerTimestamp) {
+    // Update Layers - Smart multi-source radar with animation support
+    LaunchedEffect(layers, location, currentFrameIndex, radarTimestamps) {
         // Remove previous radar overlay only (leave basemap intact)
         radarOverlay?.let { previous ->
             mapView.overlays.remove(previous)
@@ -142,61 +168,67 @@ fun RadarMapView(
             val isUSLocation = location.latitude >= 24.0 && location.latitude <= 50.0 &&
                               location.longitude >= -125.0 && location.longitude <= -66.0
 
-                val tileSource = if (isUSLocation) {
-                    // NOAA NEXRAD Radar - Free forever, high quality, US only
-                    object : OnlineTileSourceBase(
-                        "NOAA NEXRAD Radar",
-                        0, 18, 256, ".png",
-                        arrayOf(
+            val tileSource = if (isUSLocation) {
+                // NOAA NEXRAD Radar - Free forever, high quality, US only
+                object : OnlineTileSourceBase(
+                    "NOAA NEXRAD Radar",
+                    0, 18, 256, ".png",
+                    arrayOf(
                         "https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913/",
-                        "https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913/"
+                        "https://mesonet1.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913/"
                     )
                 ) {
                     override fun getTileURLString(pMapTileIndex: Long): String {
                         val z = MapTileIndex.getZoom(pMapTileIndex)
                         val x = MapTileIndex.getX(pMapTileIndex)
                         val y = MapTileIndex.getY(pMapTileIndex)
-                        return "${baseUrl[0]}$z/$x/$y.png"
+                        return "${baseUrl[z.mod(baseUrl.size)]}$z/$x/$y.png"
                     }
-                    }
+                }
+            } else {
+                // RainViewer - Free globally, with proper frame animation
+                val timestamp = if (currentFrameIndex >= 0 && currentFrameIndex < radarTimestamps.size) {
+                    radarTimestamps[currentFrameIndex]
+                } else if (radarTimestamps.isNotEmpty()) {
+                    radarTimestamps.last()
                 } else {
-                    // RainViewer - Free globally, no API key
-                    val timestamp = rainViewerTimestamp
-                    val tsSegment = timestamp?.toString() ?: "last" // fallback to latest available frame
-                    object : OnlineTileSourceBase(
-                        "RainViewer Radar",
-                        0, 10, 256, ".png", // RainViewer radar frames support zoom levels 0-10
-                        arrayOf(
-                            "https://tilecache.rainviewer.com/v2/radar/",
-                        "https://tilecache.rainviewer.com/v2/radar/"
+                    null
+                }
+                val tsSegment = timestamp?.toString() ?: "last"
+
+                object : OnlineTileSourceBase(
+                    "RainViewer Radar",
+                    0, 12, 256, ".png", // RainViewer supports up to zoom 12
+                    arrayOf(
+                        "https://tilecache.rainviewer.com/v2/radar/",
+                        "https://a.tilecache.rainviewer.com/v2/radar/",
+                        "https://b.tilecache.rainviewer.com/v2/radar/"
                     )
                 ) {
                     override fun getTileURLString(pMapTileIndex: Long): String {
                         val z = MapTileIndex.getZoom(pMapTileIndex)
                         val x = MapTileIndex.getX(pMapTileIndex)
                         val y = MapTileIndex.getY(pMapTileIndex)
-                        // RainViewer requires a valid timestamp; use the freshest frame (or "last" fallback).
-                        return "${baseUrl[0]}$tsSegment/256/$z/$x/$y/2/1_1.png"
+                        val server = baseUrl[(x + y).mod(baseUrl.size)]
+                        // Color scheme: 2 = original, smooth: 1, snow: 1
+                        return "${server}$tsSegment/256/$z/$x/$y/2/1_1.png"
                     }
                 }
             }
 
-            if (tileSource != null) {
-                val tileProvider = MapTileProviderBasic(context)
-                tileProvider.tileSource = tileSource
+            val tileProvider = MapTileProviderBasic(context)
+            tileProvider.tileSource = tileSource
 
-                val overlay = TilesOverlay(tileProvider, context)
-                overlay.loadingBackgroundColor = android.graphics.Color.TRANSPARENT
-                overlay.loadingLineColor = android.graphics.Color.TRANSPARENT
-                overlay.setLoadingDrawable(null) // No loading indicator
-                mapView.overlays.add(overlay)
-                radarOverlay = overlay
-            }
+            val overlay = TilesOverlay(tileProvider, context)
+            overlay.loadingBackgroundColor = android.graphics.Color.TRANSPARENT
+            overlay.loadingLineColor = android.graphics.Color.TRANSPARENT
+            overlay.setLoadingDrawable(null) // No loading indicator for clean look
+            mapView.overlays.add(overlay)
+            radarOverlay = overlay
         }
 
-        // Force redraw
+        // Force redraw at 120Hz-friendly timing
         mapView.invalidate()
-        mapView.postInvalidate()
     }
 
     AndroidView(
@@ -212,9 +244,10 @@ fun RadarMapView(
 }
 
 /**
- * Fetches the most recent RainViewer radar frame timestamp so tile requests resolve (avoids 404s).
+ * Fetches all available RainViewer radar frame timestamps for animation.
+ * RainViewer provides ~12 past frames (2 hours) in 10-minute intervals.
  */
-private suspend fun fetchLatestRainViewerTimestamp(): Long? = withContext(Dispatchers.IO) {
+private suspend fun fetchAllRainViewerTimestamps(): List<Long> = withContext(Dispatchers.IO) {
     val url = URL("https://tilecache.rainviewer.com/api/maps.json")
     return@withContext try {
         val connection = (url.openConnection() as HttpURLConnection).apply {
@@ -223,12 +256,23 @@ private suspend fun fetchLatestRainViewerTimestamp(): Long? = withContext(Dispat
         }
         connection.inputStream.bufferedReader().use { reader ->
             val body = reader.readText()
-            val timestamps = JSONArray(body)
-            // Use the newest frame (last in array)
-            timestamps.optLong(timestamps.length() - 1)
+            val jsonArray = JSONArray(body)
+            val timestamps = mutableListOf<Long>()
+            for (i in 0 until jsonArray.length()) {
+                timestamps.add(jsonArray.getLong(i))
+            }
+            timestamps
         }
     } catch (e: Exception) {
         Log.e("RadarMapView", "Failed to fetch RainViewer timestamps", e)
-        null
+        emptyList()
     }
+}
+
+/**
+ * Fetches the most recent RainViewer radar frame timestamp (legacy helper).
+ */
+private suspend fun fetchLatestRainViewerTimestamp(): Long? = withContext(Dispatchers.IO) {
+    val timestamps = fetchAllRainViewerTimestamps()
+    timestamps.lastOrNull()
 }

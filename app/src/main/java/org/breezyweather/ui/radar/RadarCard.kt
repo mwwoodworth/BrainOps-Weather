@@ -1,8 +1,10 @@
 package org.breezyweather.ui.radar
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ZoomOutMap
@@ -12,17 +14,25 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import breezyweather.domain.location.model.Location
 import org.breezyweather.R
 import org.breezyweather.common.utils.helpers.IntentHelper
 
+/**
+ * Interactive radar preview card with smooth 120Hz animations.
+ * Inspired by Today Weather and Overdrop's premium dark UI.
+ */
 @Composable
 fun InteractiveRadarCard(
     location: Location,
@@ -30,6 +40,27 @@ fun InteractiveRadarCard(
     onExpandClick: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
+
+    // Pulsing animation for LIVE indicator - optimized for 120Hz
+    val infiniteTransition = rememberInfiniteTransition(label = "live_pulse")
+    val pulseAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.5f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(800, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulse_alpha"
+    )
+    val pulseScale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.3f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(800, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulse_scale"
+    )
 
     Card(
         modifier = modifier
@@ -53,22 +84,36 @@ fun InteractiveRadarCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(colorResource(R.color.darkPrimary_4)) // Slightly lighter header
+                    .background(colorResource(R.color.darkPrimary_4))
                     .padding(horizontal = 16.dp, vertical = 14.dp)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    // Radar icon indicator
-                    Box(
-                        modifier = Modifier
-                            .size(6.dp)
-                            .background(
-                                colorResource(R.color.brainops_primary),
-                                shape = RoundedCornerShape(3.dp)
-                            )
-                    )
+                    // Pulsing radar dot indicator
+                    Box(contentAlignment = Alignment.Center) {
+                        // Pulse ring effect
+                        Box(
+                            modifier = Modifier
+                                .size(14.dp)
+                                .scale(pulseScale)
+                                .alpha(pulseAlpha * 0.4f)
+                                .background(
+                                    colorResource(R.color.brainops_primary),
+                                    shape = CircleShape
+                                )
+                        )
+                        // Core dot
+                        Box(
+                            modifier = Modifier
+                                .size(6.dp)
+                                .background(
+                                    colorResource(R.color.brainops_primary),
+                                    shape = CircleShape
+                                )
+                        )
+                    }
                     Text(
                         text = "Live Radar",
                         style = MaterialTheme.typography.titleMedium.copy(
@@ -107,13 +152,13 @@ fun InteractiveRadarCard(
                             androidx.compose.ui.graphics.Brush.verticalGradient(
                                 colors = listOf(
                                     Color.Transparent,
-                                    Color.Black.copy(alpha = 0.05f)
+                                    Color.Black.copy(alpha = 0.08f)
                                 )
                             )
                         )
                 )
 
-                // Tap hint - minimal and elegant
+                // Tap hint - minimal and elegant with glass effect
                 Box(
                     modifier = Modifier
                         .align(Alignment.Center)
@@ -160,19 +205,21 @@ fun InteractiveRadarCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    // Pulsing live indicator
+                    // Animated pulsing live dot
                     Box(
                         modifier = Modifier
                             .size(7.dp)
+                            .alpha(pulseAlpha)
                             .background(
                                 colorResource(R.color.brainops_primary),
-                                shape = RoundedCornerShape(4.dp)
+                                shape = CircleShape
                             )
                     )
                     Text(
                         text = "LIVE",
                         style = MaterialTheme.typography.labelMedium.copy(
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 0.5.sp
                         ),
                         color = colorResource(R.color.brainops_primary)
                     )

@@ -1,8 +1,10 @@
 package org.breezyweather.ui.radar
 
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,8 +16,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat
 import breezyweather.domain.location.model.Location
 import kotlinx.coroutines.delay
 import org.breezyweather.R
@@ -26,6 +30,13 @@ class RadarActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Enable edge-to-edge and hardware acceleration for smooth 120Hz rendering
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        window.setFlags(
+            WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
+            WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED
+        )
 
         // Get location from intent
         val latitude = intent.getDoubleExtra("latitude", 0.0)
@@ -65,15 +76,24 @@ fun FullScreenRadarScreen(
     var selectedLayers by remember { mutableStateOf(listOf(RadarLayer.PRECIPITATION)) }
     var animationState by remember { mutableStateOf(RadarAnimationState()) }
     var showLayerSelector by remember { mutableStateOf(false) }
+    var radarTimestamps by remember { mutableStateOf<List<Long>>(emptyList()) }
 
-    // Animation logic
-    LaunchedEffect(animationState.isPlaying) {
-        if (animationState.isPlaying) {
+    // Smooth animation with proper frame timing for 120Hz displays
+    // Each radar frame represents ~10 minutes, we animate at ~500ms per frame for natural playback
+    val animationFrameDelay = (500L / animationState.playbackSpeed).toLong().coerceAtLeast(100L)
+
+    LaunchedEffect(animationState.isPlaying, animationState.playbackSpeed) {
+        if (animationState.isPlaying && radarTimestamps.isNotEmpty()) {
             while (animationState.isPlaying) {
-                delay(1000L) // Update every second
+                delay(animationFrameDelay)
+                val currentIndex = animationState.currentFrameIndex
+                val nextIndex = if (currentIndex >= radarTimestamps.size - 1) 0 else currentIndex + 1
+                val newProgress = nextIndex.toFloat() / (radarTimestamps.size - 1).coerceAtLeast(1)
+
                 animationState = animationState.copy(
-                    progress = if (animationState.progress >= 1f) 0f else animationState.progress + 0.05f,
-                    currentTimestamp = System.currentTimeMillis() - ((1f - animationState.progress) * 3600000).toLong()
+                    progress = newProgress,
+                    currentFrameIndex = nextIndex,
+                    currentTimestamp = radarTimestamps.getOrNull(nextIndex) ?: System.currentTimeMillis()
                 )
             }
         }
@@ -129,14 +149,25 @@ fun FullScreenRadarScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Full-screen interactive map
+            // Full-screen interactive map with timestamp callback
             RadarMapView(
                 location = location,
                 layers = selectedLayers,
                 animationState = animationState,
                 onLayerToggle = {},
                 isInteractive = true,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                onTimestampsLoaded = { timestamps ->
+                    radarTimestamps = timestamps
+                    if (timestamps.isNotEmpty()) {
+                        animationState = animationState.copy(
+                            availableTimestamps = timestamps,
+                            currentFrameIndex = timestamps.size - 1,
+                            progress = 1f,
+                            isLoading = false
+                        )
+                    }
+                }
             )
 
             // Layer selector overlay
@@ -151,7 +182,7 @@ fun FullScreenRadarScreen(
                 )
             }
 
-            // Bottom controls
+            // Bottom controls with proper seek handling
             RadarControls(
                 modifier = Modifier.align(Alignment.BottomCenter),
                 animationState = animationState,
@@ -160,11 +191,17 @@ fun FullScreenRadarScreen(
                         isPlaying = !animationState.isPlaying
                     )
                 },
-                onTimeSeek = { timestamp ->
-                    animationState = animationState.copy(
-                        currentTimestamp = timestamp,
-                        progress = (System.currentTimeMillis() - timestamp).toFloat() / 3600000f
-                    )
+                onTimeSeek = { progress ->
+                    if (radarTimestamps.isNotEmpty()) {
+                        val frameIndex = (progress * (radarTimestamps.size - 1)).toInt()
+                            .coerceIn(0, radarTimestamps.size - 1)
+                        animationState = animationState.copy(
+                            progress = progress,
+                            currentFrameIndex = frameIndex,
+                            currentTimestamp = radarTimestamps.getOrNull(frameIndex) ?: System.currentTimeMillis(),
+                            isPlaying = false // Pause when user seeks
+                        )
+                    }
                 }
             )
         }
