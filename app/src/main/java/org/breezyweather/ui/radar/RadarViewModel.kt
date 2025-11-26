@@ -21,7 +21,7 @@ class RadarViewModel @Inject constructor(
 
     private val _animationState = MutableStateFlow(RadarAnimationState())
     val animationState: StateFlow<RadarAnimationState> = _animationState.asStateFlow()
-    
+
     private val _insights = MutableStateFlow<List<RadarInsight>>(emptyList())
     val insights: StateFlow<List<RadarInsight>> = _insights.asStateFlow()
 
