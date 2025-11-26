@@ -170,19 +170,20 @@ fun RadarMapView(
 
             val tileSource = if (isUSLocation) {
                 // NOAA NEXRAD Radar - Free forever, high quality, US only
+                val noaaServers = arrayOf(
+                    "https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913/",
+                    "https://mesonet1.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913/"
+                )
                 object : OnlineTileSourceBase(
                     "NOAA NEXRAD Radar",
                     0, 18, 256, ".png",
-                    arrayOf(
-                        "https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913/",
-                        "https://mesonet1.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913/"
-                    )
+                    noaaServers
                 ) {
                     override fun getTileURLString(pMapTileIndex: Long): String {
                         val z = MapTileIndex.getZoom(pMapTileIndex)
                         val x = MapTileIndex.getX(pMapTileIndex)
                         val y = MapTileIndex.getY(pMapTileIndex)
-                        return "${baseUrl[z.mod(baseUrl.size)]}$z/$x/$y.png"
+                        return "${noaaServers[z.mod(noaaServers.size)]}$z/$x/$y.png"
                     }
                 }
             } else {
@@ -196,20 +197,21 @@ fun RadarMapView(
                 }
                 val tsSegment = timestamp?.toString() ?: "last"
 
+                val rainViewerServers = arrayOf(
+                    "https://tilecache.rainviewer.com/v2/radar/",
+                    "https://a.tilecache.rainviewer.com/v2/radar/",
+                    "https://b.tilecache.rainviewer.com/v2/radar/"
+                )
                 object : OnlineTileSourceBase(
                     "RainViewer Radar",
                     0, 12, 256, ".png", // RainViewer supports up to zoom 12
-                    arrayOf(
-                        "https://tilecache.rainviewer.com/v2/radar/",
-                        "https://a.tilecache.rainviewer.com/v2/radar/",
-                        "https://b.tilecache.rainviewer.com/v2/radar/"
-                    )
+                    rainViewerServers
                 ) {
                     override fun getTileURLString(pMapTileIndex: Long): String {
                         val z = MapTileIndex.getZoom(pMapTileIndex)
                         val x = MapTileIndex.getX(pMapTileIndex)
                         val y = MapTileIndex.getY(pMapTileIndex)
-                        val server = baseUrl[(x + y).mod(baseUrl.size)]
+                        val server = rainViewerServers[(x + y).mod(rainViewerServers.size)]
                         // Color scheme: 2 = original, smooth: 1, snow: 1
                         return "${server}$tsSegment/256/$z/$x/$y/2/1_1.png"
                     }
