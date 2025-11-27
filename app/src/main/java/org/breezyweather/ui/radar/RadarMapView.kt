@@ -25,12 +25,16 @@ import org.osmdroid.util.MapTileIndex
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.TilesOverlay
 import android.util.Log
-import android.view.Choreographer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.delay
 import java.net.HttpURLConnection
 import java.net.URL
+import java.io.File
+import org.breezyweather.ui.radar.RadarProvider
+import org.breezyweather.ui.radar.RadarStatus
+import org.json.JSONObject
+import org.json.JSONException
 
 /**
  * High-performance radar map view optimized for 120Hz+ displays.
@@ -44,7 +48,8 @@ fun RadarMapView(
     onLayerToggle: (RadarLayer) -> Unit,
     modifier: Modifier = Modifier,
     isInteractive: Boolean = true,
-    onTimestampsLoaded: ((List<Long>) -> Unit)? = null
+    onTimestampsLoaded: ((List<Long>) -> Unit)? = null,
+    onStatusChanged: ((RadarStatus) -> Unit)? = null
 ) {
     val context = LocalContext.current
     // Store all available radar timestamps for animation
@@ -55,6 +60,9 @@ fun RadarMapView(
 
     // Initialize OSMDroid configuration with 120Hz optimizations
     LaunchedEffect(Unit) {
+        val cacheBase = File(context.cacheDir, "osmdroid").apply { mkdirs() }
+        Configuration.getInstance().osmdroidBasePath = cacheBase
+        Configuration.getInstance().osmdroidTileCache = File(cacheBase, "tiles").apply { mkdirs() }
         Configuration.getInstance().load(context, PreferenceManager.getDefaultSharedPreferences(context))
         Configuration.getInstance().userAgentValue = BuildConfig.APPLICATION_ID
         // Increase tile download threads for faster loading
@@ -70,6 +78,14 @@ fun RadarMapView(
             radarTimestamps = timestamps
             currentFrameIndex = timestamps.size - 1 // Start at most recent
             onTimestampsLoaded?.invoke(timestamps)
+        } else {
+            onStatusChanged?.invoke(
+                RadarStatus(
+                    provider = RadarProvider.RAINVIEWER,
+                    isOperational = false,
+                    message = "RainViewer timeline unavailable"
+                )
+            )
         }
     }
 
@@ -81,6 +97,14 @@ fun RadarMapView(
             if (timestamps.isNotEmpty() && timestamps != radarTimestamps) {
                 radarTimestamps = timestamps
                 onTimestampsLoaded?.invoke(timestamps)
+            } else if (timestamps.isEmpty()) {
+                onStatusChanged?.invoke(
+                    RadarStatus(
+                        provider = RadarProvider.RAINVIEWER,
+                        isOperational = false,
+                        message = "Unable to refresh radar frames"
+                    )
+                )
             }
         }
     }
@@ -168,6 +192,7 @@ fun RadarMapView(
             val isUSLocation = location.latitude >= 24.0 && location.latitude <= 50.0 &&
                               location.longitude >= -125.0 && location.longitude <= -66.0
 
+            val provider = if (isUSLocation) RadarProvider.NOAA else RadarProvider.RAINVIEWER
             val tileSource = if (isUSLocation) {
                 // NOAA NEXRAD Radar - Free forever, high quality, US only
                 val noaaServers = arrayOf(
@@ -227,6 +252,39 @@ fun RadarMapView(
             overlay.setLoadingDrawable(null) // No loading indicator for clean look
             mapView.overlays.add(overlay)
             radarOverlay = overlay
+
+            val currentTimestamp = if (provider == RadarProvider.NOAA) {
+                System.currentTimeMillis() / 1000
+            } else if (currentFrameIndex in radarTimestamps.indices) {
+                radarTimestamps[currentFrameIndex]
+            } else {
+                radarTimestamps.lastOrNull()
+            }
+
+            val statusMessage = if (provider == RadarProvider.NOAA) {
+                "NOAA NEXRAD feed"
+            } else if (radarTimestamps.isEmpty()) {
+                "Awaiting RainViewer frames"
+            } else {
+                "RainViewer global radar"
+            }
+
+            onStatusChanged?.invoke(
+                RadarStatus(
+                    provider = provider,
+                    lastUpdatedEpochSeconds = currentTimestamp,
+                    isOperational = true,
+                    message = statusMessage
+                )
+            )
+        } else {
+            onStatusChanged?.invoke(
+                RadarStatus(
+                    provider = RadarProvider.RAINVIEWER,
+                    isOperational = false,
+                    message = "Radar layer disabled"
+                )
+            )
         }
 
         // Force redraw at 120Hz-friendly timing
@@ -250,25 +308,27 @@ fun RadarMapView(
  * RainViewer provides ~12 past frames (2 hours) in 10-minute intervals.
  */
 private suspend fun fetchAllRainViewerTimestamps(): List<Long> = withContext(Dispatchers.IO) {
-    val url = URL("https://tilecache.rainviewer.com/api/maps.json")
-    return@withContext try {
-        val connection = (url.openConnection() as HttpURLConnection).apply {
-            connectTimeout = 5000
-            readTimeout = 5000
-        }
-        connection.inputStream.bufferedReader().use { reader ->
-            val body = reader.readText()
-            val jsonArray = JSONArray(body)
-            val timestamps = mutableListOf<Long>()
-            for (i in 0 until jsonArray.length()) {
-                timestamps.add(jsonArray.getLong(i))
+    val endpoints = listOf(
+        "https://api.rainviewer.com/public/weather-maps.json",
+        "https://tilecache.rainviewer.com/api/maps.json"
+    )
+
+    endpoints.firstNotNullOfOrNull { endpoint ->
+        runCatching {
+            val url = URL(endpoint)
+            val connection = (url.openConnection() as HttpURLConnection).apply {
+                connectTimeout = 6000
+                readTimeout = 6000
+                setRequestProperty("User-Agent", BuildConfig.APPLICATION_ID)
             }
-            timestamps
-        }
-    } catch (e: Exception) {
-        Log.e("RadarMapView", "Failed to fetch RainViewer timestamps", e)
-        emptyList()
-    }
+            connection.inputStream.bufferedReader().use { reader ->
+                val body = reader.readText()
+                parseRainViewerTimestamps(body)
+            }
+        }.onFailure { error ->
+            Log.e("RadarMapView", "Failed to fetch RainViewer timestamps from $endpoint", error)
+        }.getOrNull()?.takeIf { it.isNotEmpty() }
+    } ?: emptyList()
 }
 
 /**
@@ -277,4 +337,41 @@ private suspend fun fetchAllRainViewerTimestamps(): List<Long> = withContext(Dis
 private suspend fun fetchLatestRainViewerTimestamp(): Long? = withContext(Dispatchers.IO) {
     val timestamps = fetchAllRainViewerTimestamps()
     timestamps.lastOrNull()
+}
+
+private fun parseRainViewerTimestamps(body: String): List<Long> {
+    // New RainViewer schema: object with radar.past/nowcast arrays
+    try {
+        val root = JSONObject(body)
+        val radar = root.optJSONObject("radar")
+        val frames = mutableListOf<Long>()
+        radar?.optJSONArray("past")?.let { past ->
+            for (i in 0 until past.length()) {
+                frames.add(past.getJSONObject(i).getLong("time"))
+            }
+        }
+        radar?.optJSONArray("nowcast")?.let { nowcast ->
+            for (i in 0 until nowcast.length()) {
+                frames.add(nowcast.getJSONObject(i).getLong("time"))
+            }
+        }
+        if (frames.isNotEmpty()) {
+            return frames.distinct().sorted()
+        }
+    } catch (_: JSONException) {
+        // If it isn't the object schema, fall back to array parsing below
+    }
+
+    // Legacy schema: flat array of timestamps
+    return try {
+        val jsonArray = JSONArray(body)
+        val timestamps = mutableListOf<Long>()
+        for (i in 0 until jsonArray.length()) {
+            timestamps.add(jsonArray.getLong(i))
+        }
+        timestamps
+    } catch (e: Exception) {
+        Log.e("RadarMapView", "Failed to parse RainViewer timestamps", e)
+        emptyList()
+    }
 }

@@ -7,6 +7,18 @@ enum class RadarLayer(val layerId: String, val title: String, val endpoint: Stri
     // No API key required for either source
 }
 
+enum class RadarProvider {
+    NOAA,
+    RAINVIEWER
+}
+
+data class RadarStatus(
+    val provider: RadarProvider,
+    val lastUpdatedEpochSeconds: Long? = null,
+    val isOperational: Boolean = true,
+    val message: String? = null
+)
+
 /**
  * Animation state for radar playback.
  * Optimized for smooth 120Hz+ display rendering.
