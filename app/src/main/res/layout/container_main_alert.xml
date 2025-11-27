@@ -2,12 +2,9 @@
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/container_main_first_card_header"
-    android:layout_margin="0dp"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    style="@style/OverdropCard"
     android:backgroundTint="@color/alert_background"
-    app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.ExtraLarge"
-    app:strokeWidth="0dp">
+    app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.ExtraLarge">
 
     <androidx.compose.ui.platform.ComposeView
         android:id="@+id/container_main_first_card_alert_list"

@@ -3,10 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/container_main_astro"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.ExtraLarge"
-    app:strokeWidth="0dp">
+    style="@style/OverdropCard"
+    app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.ExtraLarge">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"

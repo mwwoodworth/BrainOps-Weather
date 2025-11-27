@@ -3,11 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/container_main_aqi"
-    android:layout_margin="0dp"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
-    app:strokeWidth="0dp">
+    style="@style/OverdropCard"
+    app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
