@@ -6,11 +6,13 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,8 +23,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ZoomOutMap
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -91,34 +91,25 @@ fun InteractiveRadarCard(
         label = "pulse_scale"
     )
 
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable {
-                // Launch full-screen radar activity
-                onExpandClick?.invoke() ?: IntentHelper.startRadarActivity(context, location)
-            },
-        elevation = CardDefaults.elevatedCardElevation(0.dp), // Flat for modern look
-        shape = RoundedCornerShape(20.dp), // Larger radius like Overdrop
-        colors = CardDefaults.cardColors(
-            containerColor = colorResource(R.color.darkPrimary_5) // Deep dark background
-        )
+    BrainopsOverdropCard(
+        modifier = modifier.fillMaxWidth(),
+        onClick = {
+            // Launch full-screen radar activity
+            onExpandClick?.invoke() ?: IntentHelper.startRadarActivity(context, location)
+        }
     ) {
-        Column(
-            modifier = Modifier.fillMaxWidth()
+        // Header with premium styling
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(colorResource(R.color.brainops_surface_glass))
+                .padding(horizontal = 16.dp, vertical = 14.dp)
         ) {
-            // Header with premium styling
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(colorResource(R.color.darkPrimary_4))
-                    .padding(horizontal = 16.dp, vertical = 14.dp)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     // Pulsing radar dot indicator
                     Box(contentAlignment = Alignment.Center) {
@@ -233,7 +224,7 @@ fun InteractiveRadarCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(colorResource(R.color.darkPrimary_4))
+                    .background(colorResource(R.color.brainops_surface_glass))
                     .padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -271,6 +262,49 @@ fun InteractiveRadarCard(
                     style = MaterialTheme.typography.labelSmall,
                     color = colorResource(R.color.brainops_text_secondary)
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun BrainopsOverdropCard(
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    val shape = RoundedCornerShape(22.dp)
+    val borderColor = colorResource(R.color.brainops_primary).copy(alpha = 0.45f)
+
+    Surface(
+        modifier = modifier.then(
+            if (onClick != null) {
+                Modifier.clickable { onClick() }
+            } else {
+                Modifier
+            }
+        ),
+        shape = shape,
+        color = Color.Transparent,
+        tonalElevation = 0.dp,
+        shadowElevation = 12.dp,
+        border = BorderStroke(1.dp, borderColor)
+    ) {
+        Box(
+            modifier = Modifier
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(
+                            colorResource(R.color.brainops_gradient_start),
+                            colorResource(R.color.brainops_gradient_mid),
+                            colorResource(R.color.brainops_gradient_end)
+                        )
+                    )
+                )
+                .background(colorResource(R.color.brainops_surface_glass))
+        ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                content()
             }
         }
     }
