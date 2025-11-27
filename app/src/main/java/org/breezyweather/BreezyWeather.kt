@@ -27,12 +27,14 @@ import androidx.work.Configuration
 import androidx.work.WorkInfo
 import androidx.work.WorkQuery
 import dagger.hilt.android.HiltAndroidApp
+import com.google.android.material.color.DynamicColors
 import org.breezyweather.common.activities.BreezyActivity
 import org.breezyweather.common.extensions.uiModeManager
 import org.breezyweather.common.extensions.workManager
 import org.breezyweather.common.utils.helpers.LogHelper
 import org.breezyweather.domain.settings.SettingsManager
 import org.breezyweather.remoteviews.Notifications
+import org.breezyweather.R
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader
@@ -86,6 +88,8 @@ class BreezyWeather : Application(), Configuration.Provider {
             // if the app wants to be displayed in dark mode before it launches so that the splash
             // screen can be displayed accordingly.
             setDayNightMode()
+
+            applyDynamicColorsIfEnabled()
         }
 
         /*
@@ -124,6 +128,14 @@ class BreezyWeather : Application(), Configuration.Provider {
 
     private fun setDayNightMode() {
         updateDayNightMode(SettingsManager.getInstance(this).darkMode.value)
+    }
+
+    private fun applyDynamicColorsIfEnabled() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+            resources.getBoolean(R.bool.enable_dynamic_color)
+        ) {
+            DynamicColors.applyToActivitiesIfAvailable(this)
+        }
     }
 
     fun updateDayNightMode(dayNightMode: Int) {
