@@ -142,6 +142,7 @@
     <color name="brainops_text_primary">#FFFFFF</color>
     <color name="brainops_text_secondary">#B0BEC5</color>
     <color name="brainops_gradient_start">#1A237E</color>
+    <color name="brainops_gradient_mid">#0D47A1</color>
     <color name="brainops_gradient_end">#000000</color>
 
 </resources>
