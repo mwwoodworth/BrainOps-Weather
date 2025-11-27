@@ -192,10 +192,7 @@ class WeatherUpdateJob @AssistedInject constructor(
                 }
                 .filterIndexed { i, location ->
                     // Only refresh secondary locations once a day as we only need daily info
-                    i == 0 ||
-                        location.weather?.base?.refreshTime == null ||
-                        location.weather!!.base.refreshTime!!.getIsoFormattedDate(location) <
-                        Date().getFormattedDate("yyyy-MM-dd")
+                    i == 0 || shouldRefreshSecondaryLocation(location)
                 }
                 .toMutableList()
         }
@@ -527,4 +524,14 @@ class WeatherUpdateJob @AssistedInject constructor(
                 }
         }
     }
+}
+
+internal fun shouldRefreshSecondaryLocation(
+    location: Location,
+    now: Date = Date(),
+): Boolean {
+    val lastRefresh = location.weather?.base?.refreshTime ?: return true
+
+    val locationDate = now.getFormattedDate("yyyy-MM-dd", location)
+    return lastRefresh.getIsoFormattedDate(location) < locationDate
 }
