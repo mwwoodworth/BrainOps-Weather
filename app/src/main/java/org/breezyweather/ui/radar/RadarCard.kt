@@ -25,9 +25,13 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -42,6 +46,8 @@ import androidx.compose.ui.unit.sp
 import breezyweather.domain.location.model.Location
 import org.breezyweather.R
 import org.breezyweather.common.utils.helpers.IntentHelper
+import org.breezyweather.ui.radar.RadarProvider
+import org.breezyweather.ui.radar.RadarStatus
 
 /**
  * Interactive radar preview card with smooth 120Hz animations.
@@ -54,6 +60,15 @@ fun InteractiveRadarCard(
     onExpandClick: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
+    var radarStatus by remember {
+        mutableStateOf(
+            RadarStatus(
+                provider = RadarProvider.RAINVIEWER,
+                isOperational = false,
+                message = "Loading radar"
+            )
+        )
+    }
 
     // Pulsing animation for LIVE indicator - optimized for 120Hz
     val infiniteTransition = rememberInfiniteTransition(label = "live_pulse")
@@ -155,7 +170,8 @@ fun InteractiveRadarCard(
                     layers = listOf(RadarLayer.PRECIPITATION),
                     animationState = RadarAnimationState(),
                     onLayerToggle = {},
-                    isInteractive = false
+                    isInteractive = false,
+                    onStatusChanged = { radarStatus = it }
                 )
 
                 // Subtle gradient overlay for depth
@@ -170,6 +186,13 @@ fun InteractiveRadarCard(
                                 )
                             )
                         )
+                )
+
+                RadarStatusChip(
+                    status = radarStatus,
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(12.dp)
                 )
 
                 // Tap hint - minimal and elegant with glass effect
@@ -244,11 +267,77 @@ fun InteractiveRadarCard(
                     )
                 }
                 Text(
-                    text = "Updated now",
+                    text = formatPreviewStatus(radarStatus),
                     style = MaterialTheme.typography.labelSmall,
                     color = colorResource(R.color.brainops_text_secondary)
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun RadarStatusChip(status: RadarStatus, modifier: Modifier = Modifier) {
+    val borderColor = if (status.isOperational) {
+        colorResource(R.color.brainops_primary).copy(alpha = 0.6f)
+    } else {
+        Color(0xFFFF6B6B).copy(alpha = 0.6f)
+    }
+
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(12.dp),
+        color = colorResource(R.color.brainops_surface_glass),
+        border = androidx.compose.foundation.BorderStroke(1.dp, borderColor),
+        shadowElevation = 4.dp
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(7.dp)
+                    .background(borderColor, CircleShape)
+            )
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    text = when (status.provider) {
+                        RadarProvider.NOAA -> "NOAA"
+                        RadarProvider.RAINVIEWER -> "RainViewer"
+                    },
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+                    color = colorResource(R.color.brainops_text_primary)
+                )
+                Text(
+                    text = formatPreviewStatus(status),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if (status.isOperational) colorResource(R.color.brainops_text_secondary)
+                            else Color(0xFFFFA8A8)
+                )
+            }
+        }
+    }
+}
+
+private fun formatPreviewStatus(status: RadarStatus): String {
+    val timeLabel = formatPreviewTimestamp(status.lastUpdatedEpochSeconds)
+    return when {
+        !status.isOperational && status.message != null -> status.message
+        status.message.isNullOrBlank() -> timeLabel
+        else -> "$timeLabel • ${status.message}"
+    }
+}
+
+private fun formatPreviewTimestamp(epochSeconds: Long?): String {
+    if (epochSeconds == null) return "Awaiting data"
+    val nowSeconds = System.currentTimeMillis() / 1000
+    val minutesAgo = ((nowSeconds - epochSeconds) / 60).coerceAtLeast(0)
+    return when {
+        minutesAgo == 0L -> "Live now"
+        minutesAgo < 60 -> "${minutesAgo}m ago"
+        minutesAgo < 1440 -> "${minutesAgo / 60}h ago"
+        else -> "${minutesAgo / 1440}d ago"
     }
 }

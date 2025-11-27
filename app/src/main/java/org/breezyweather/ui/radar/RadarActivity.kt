@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -47,6 +49,8 @@ import kotlinx.coroutines.delay
 import org.breezyweather.R
 import org.breezyweather.ui.radar.composables.RadarControls
 import org.breezyweather.ui.theme.compose.BreezyWeatherTheme
+import org.breezyweather.ui.radar.RadarProvider
+import org.breezyweather.ui.radar.RadarStatus
 
 class RadarActivity : ComponentActivity() {
 
@@ -99,6 +103,15 @@ fun FullScreenRadarScreen(
     var animationState by remember { mutableStateOf(RadarAnimationState()) }
     var showLayerSelector by remember { mutableStateOf(false) }
     var radarTimestamps by remember { mutableStateOf<List<Long>>(emptyList()) }
+    var radarStatus by remember {
+        mutableStateOf(
+            RadarStatus(
+                provider = RadarProvider.RAINVIEWER,
+                isOperational = false,
+                message = "Initializing radar"
+            )
+        )
+    }
 
     // Smooth animation with proper frame timing for 120Hz displays
     // Each radar frame represents ~10 minutes, we animate at ~500ms per frame for natural playback
@@ -189,7 +202,8 @@ fun FullScreenRadarScreen(
                             isLoading = false
                         )
                     }
-                }
+                },
+                onStatusChanged = { radarStatus = it }
             )
 
             // Layer selector overlay
@@ -203,6 +217,13 @@ fun FullScreenRadarScreen(
                         .padding(16.dp)
                 )
             }
+
+            RadarStatusBanner(
+                status = radarStatus,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(16.dp)
+            )
 
             // Bottom controls with proper seek handling
             RadarControls(
@@ -307,5 +328,84 @@ fun LayerSelectorOverlay(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun RadarStatusBanner(
+    status: RadarStatus,
+    modifier: Modifier = Modifier
+) {
+    val borderColor = if (status.isOperational) {
+        colorResource(R.color.brainops_primary).copy(alpha = 0.5f)
+    } else {
+        Color(0xFFFF6B6B).copy(alpha = 0.5f)
+    }
+    val headline = when (status.provider) {
+        RadarProvider.NOAA -> "NOAA NEXRAD"
+        RadarProvider.RAINVIEWER -> "RainViewer"
+    }
+    val subtitle = buildString {
+        append(formatRadarUpdateLabel(status.lastUpdatedEpochSeconds))
+        status.message?.let { msg ->
+            if (msg.isNotBlank()) {
+                append(" • ")
+                append(msg)
+            }
+        }
+    }
+
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(14.dp),
+        color = colorResource(R.color.brainops_surface_glass),
+        border = BorderStroke(1.dp, borderColor),
+        shadowElevation = 6.dp
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .background(borderColor, CircleShape)
+                )
+                Text(
+                    text = headline,
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                    color = colorResource(R.color.brainops_text_primary)
+                )
+            }
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = if (status.isOperational) {
+                    colorResource(R.color.brainops_text_secondary)
+                } else {
+                    Color(0xFFFFA8A8)
+                }
+            )
+        }
+    }
+}
+
+private fun formatRadarUpdateLabel(lastUpdatedEpochSeconds: Long?): String {
+    if (lastUpdatedEpochSeconds == null) return "Awaiting data"
+    val nowSeconds = System.currentTimeMillis() / 1000
+    val minutesAgo = ((nowSeconds - lastUpdatedEpochSeconds) / 60).coerceAtLeast(0)
+    return when {
+        minutesAgo == 0L -> "Live now"
+        minutesAgo < 60 -> "${minutesAgo}m ago"
+        minutesAgo < 1440 -> {
+            val hours = minutesAgo / 60
+            val minutes = minutesAgo % 60
+            if (minutes > 0) "${hours}h ${minutes}m ago" else "${hours}h ago"
+        }
+        else -> "${minutesAgo / 1440}d ago"
     }
 }
