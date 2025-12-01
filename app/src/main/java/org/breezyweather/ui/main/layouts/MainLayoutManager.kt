@@ -36,12 +36,14 @@ class MainLayoutManager(
         super.onAdapterChanged(oldAdapter, newAdapter)
         scrollToPosition(0)
         mDataSetChanged = true
+        childHeightMap.clear()
     }
 
     override fun onItemsChanged(recyclerView: RecyclerView) {
         super.onItemsChanged(recyclerView)
         scrollToPosition(0)
         mDataSetChanged = true
+        childHeightMap.clear()
     }
 
     override fun onLayoutChildren(recycler: RecyclerView.Recycler, state: RecyclerView.State) {
@@ -57,6 +59,9 @@ class MainLayoutManager(
      */
     override fun onLayoutCompleted(state: RecyclerView.State?) {
         super.onLayoutCompleted(state)
+        if (state != null) {
+            childHeightMap.keys.retainAll(0 until state.itemCount)
+        }
         for (i in 0 until childCount) {
             getChildAt(i)?.let {
                 childHeightMap[getPosition(it)] = it.height

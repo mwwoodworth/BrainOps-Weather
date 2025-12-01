@@ -23,6 +23,9 @@
     <dimen name="material3_card_settings_large_separator">16dp</dimen>
     <dimen name="material3_card_list_item_corner_radius">24dp</dimen>
     <dimen name="material3_card_list_item_inner_radius">18dp</dimen>
+    <dimen name="main_card_corner_radius">22dp</dimen>
+    <dimen name="main_card_elevation">4dp</dimen>
+    <dimen name="main_card_stroke_width">1dp</dimen>
     <dimen name="material3_widget_corner_radius">16dp</dimen>
     <dimen name="material3_widget_inner_radius">12dp</dimen>
     <dimen name="spinner_drop_width">150dp</dimen>
