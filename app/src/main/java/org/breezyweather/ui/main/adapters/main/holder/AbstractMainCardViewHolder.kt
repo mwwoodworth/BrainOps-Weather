@@ -18,14 +18,15 @@ package org.breezyweather.ui.main.adapters.main.holder
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.res.ColorStateList
 import android.view.View
 import android.view.ViewGroup.MarginLayoutParams
 import androidx.annotation.CallSuper
 import breezyweather.domain.location.model.Location
 import com.google.android.material.card.MaterialCardView
+import com.google.android.material.color.MaterialColors
 import org.breezyweather.R
 import org.breezyweather.common.activities.BreezyActivity
-import org.breezyweather.common.extensions.dpToPx
 import org.breezyweather.ui.theme.resource.providers.ResourceProvider
 
 @SuppressLint("ObjectAnimatorBinding")
@@ -46,7 +47,23 @@ abstract class AbstractMainCardViewHolder(
         mLocation = location
         if (itemView is MaterialCardView) {
             (itemView as MaterialCardView).apply {
-                elevation = context.dpToPx(2f)
+                val resources = context.resources
+                val outlineColor = MaterialColors.getColor(
+                    this,
+                    com.google.android.material.R.attr.colorOutline
+                )
+                val ripple = MaterialColors.getColor(
+                    this,
+                    com.google.android.material.R.attr.colorPrimary
+                )
+
+                radius = resources.getDimension(R.dimen.main_card_corner_radius)
+                cardElevation = resources.getDimension(R.dimen.main_card_elevation)
+                strokeWidth = resources.getDimensionPixelSize(R.dimen.main_card_stroke_width)
+                setStrokeColor(outlineColor)
+                rippleColor = ColorStateList.valueOf(ripple)
+                cardUseCompatPadding = true
+                preventCornerOverlap = true
             }
         }
         val params = itemView.layoutParams as MarginLayoutParams
