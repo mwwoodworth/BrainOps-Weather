@@ -34,6 +34,8 @@ class BrainOpsSettingsActivity : ComponentActivity() {
 
         setContent {
             var apiBase by remember { mutableStateOf(initial.apiBaseUrl) }
+            var weatherBase by remember { mutableStateOf(initial.weatherBaseUrl) }
+            var aiBase by remember { mutableStateOf(initial.aiBaseUrl) }
             var apiKey by remember { mutableStateOf(initial.apiKey) }
             var tenantId by remember { mutableStateOf(initial.tenantId) }
             var radarUrl by remember { mutableStateOf(initial.radarUrl) }
@@ -63,6 +65,8 @@ class BrainOpsSettingsActivity : ComponentActivity() {
                         )
 
                         LabeledField(label = "API Base URL", value = apiBase) { apiBase = it }
+                        LabeledField(label = "Weather API Base URL", value = weatherBase) { weatherBase = it }
+                        LabeledField(label = "AI API Base URL", value = aiBase) { aiBase = it }
                         LabeledField(
                             label = "API Key",
                             value = apiKey,
@@ -80,6 +84,8 @@ class BrainOpsSettingsActivity : ComponentActivity() {
                             onClick = {
                                 val newConfig = BrainOpsConfig(
                                     apiBaseUrl = apiBase.trim(),
+                                    weatherBaseUrl = weatherBase.trim(),
+                                    aiBaseUrl = aiBase.trim(),
                                     apiKey = apiKey.trim(),
                                     tenantId = tenantId.trim(),
                                     enableIntegration = enabled,

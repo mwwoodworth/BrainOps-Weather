@@ -33,6 +33,7 @@ import org.breezyweather.ui.main.adapters.main.holder.AbstractMainCardViewHolder
 import org.breezyweather.ui.main.adapters.main.holder.AbstractMainViewHolder
 import org.breezyweather.ui.main.adapters.main.holder.AirQualityViewHolder
 import org.breezyweather.ui.main.adapters.main.holder.AlertViewHolder
+import org.breezyweather.ui.main.adapters.main.holder.BrainOpsImpactViewHolder
 import org.breezyweather.ui.main.adapters.main.holder.ClockViewHolder
 import org.breezyweather.ui.main.adapters.main.holder.DailyViewHolder
 import org.breezyweather.ui.main.adapters.main.holder.FooterViewHolder
@@ -54,6 +55,8 @@ import org.breezyweather.ui.theme.weatherView.WeatherView
 import java.util.Calendar
 import java.util.Collections
 import java.util.Date
+import org.breezyweather.brainops.BrainOpsConfigStore
+import org.breezyweather.brainops.FeatureFlags
 
 class MainAdapter(
     activity: MainActivity,
@@ -104,11 +107,20 @@ class MainAdapter(
         mItemAnimationEnabled = itemAnimationEnabled
         location?.weather?.let { weather ->
             val cardDisplayList = SettingsManager.getInstance(activity).cardDisplayList
+            val brainOpsConfig = BrainOpsConfigStore(activity).loadConfig()
+            val effectiveBrainOpsKey = brainOpsConfig.apiKey.ifBlank { brainOpsConfig.devApiKey }
+            val showBrainOpsCard = FeatureFlags.isBrainOpsEnabled(brainOpsConfig) && effectiveBrainOpsKey.isNotBlank()
             mViewTypeList.add(ViewType.HEADER)
             if (location.weather?.alertList?.any { it.endDate == null || it.endDate!!.time > Date().time } == true) {
                 mViewTypeList.add(ViewType.ALERT)
             }
             for (c in cardDisplayList) {
+                if (c === CardDisplay.CARD_BRAINOPS_IMPACT) {
+                    if (showBrainOpsCard) {
+                        mViewTypeList.add(ViewType.BRAINOPS_IMPACT)
+                    }
+                    continue
+                }
                 if (c === CardDisplay.CARD_NOWCAST &&
                     (!weather.hasMinutelyPrecipitation || weather.minutelyForecast.size < 3)
                 ) {
@@ -203,6 +215,7 @@ class MainAdapter(
         ViewType.MOON -> MoonViewHolder(parent)
         ViewType.CLOCK -> ClockViewHolder(parent)
         ViewType.RADAR -> InteractiveRadarCardViewHolder(parent)
+        ViewType.BRAINOPS_IMPACT -> BrainOpsImpactViewHolder(parent)
         ViewType.FOOTER -> FooterViewHolder(ComposeView(parent.context))
         else -> FooterViewHolder(ComposeView(parent.context))
     }
@@ -362,6 +375,7 @@ class MainAdapter(
             CardDisplay.CARD_MOON -> ViewType.MOON
             CardDisplay.CARD_CLOCK -> ViewType.CLOCK
             CardDisplay.CARD_RADAR -> ViewType.RADAR
+            CardDisplay.CARD_BRAINOPS_IMPACT -> ViewType.BRAINOPS_IMPACT
         }
 
         private fun getCardDisplay(viewType: Int): CardDisplay? = when (viewType) {
@@ -380,6 +394,7 @@ class MainAdapter(
             ViewType.MOON -> CardDisplay.CARD_MOON
             ViewType.CLOCK -> CardDisplay.CARD_CLOCK
             ViewType.RADAR -> CardDisplay.CARD_RADAR
+            ViewType.BRAINOPS_IMPACT -> CardDisplay.CARD_BRAINOPS_IMPACT
             else -> null
         }
     }

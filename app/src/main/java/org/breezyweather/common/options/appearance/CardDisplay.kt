@@ -52,6 +52,7 @@ enum class CardDisplay(
     CARD_MOON("moon", R.string.ephemeris_moon),
     CARD_CLOCK("clock", R.string.clock),
     CARD_RADAR("radar", R.string.interactive_radar),
+    CARD_BRAINOPS_IMPACT("brainops_impact", R.string.brainops_card_title),
     ;
 
     companion object {
