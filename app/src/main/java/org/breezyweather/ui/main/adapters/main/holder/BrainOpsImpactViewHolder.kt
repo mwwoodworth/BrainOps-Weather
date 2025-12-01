@@ -16,9 +16,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberUpdatedState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -93,8 +91,6 @@ private fun BrainOpsImpactCard(
 ) {
     val accent = if (enabled) Color(0xFF22c55e) else Color(0xFFf59e0b)
     val accentMuted = if (enabled) Color(0x3322c55e) else Color(0x33f59e0b)
-    val dashboardAction by rememberUpdatedState(onOpenDashboard)
-    val settingsAction by rememberUpdatedState(onOpenSettings)
 
     Column(
         modifier = Modifier
@@ -171,7 +167,7 @@ private fun BrainOpsImpactCard(
                     color = Color(0xFFe2e8f0)
                 )
             }
-            Button(onClick = dashboardAction) {
+            Button(onClick = onOpenDashboard) {
                 Text(text = stringResource(id = R.string.brainops_card_open_dashboard))
             }
         }
@@ -181,13 +177,13 @@ private fun BrainOpsImpactCard(
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Button(
-                onClick = settingsAction,
+                onClick = onOpenSettings,
                 modifier = Modifier.weight(1f)
             ) {
                 Text(text = stringResource(id = R.string.brainops_card_edit_settings))
             }
             TextButton(
-                onClick = dashboardAction,
+                onClick = onOpenDashboard,
                 modifier = Modifier.weight(1f)
             ) {
                 Text(

@@ -5,7 +5,7 @@
     style="@style/OverdropCard"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.ExtraLarge"
+    app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.ExtraLarge">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"

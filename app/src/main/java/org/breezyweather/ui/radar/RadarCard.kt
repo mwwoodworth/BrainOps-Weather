@@ -265,7 +265,6 @@ fun InteractiveRadarCard(
             }
         }
     }
-}
 
 @Composable
 private fun BrainopsOverdropCard(

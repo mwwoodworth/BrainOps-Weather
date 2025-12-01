@@ -6,7 +6,7 @@
     android:id="@+id/container_main_visibility"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full"
+    app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.Full">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
