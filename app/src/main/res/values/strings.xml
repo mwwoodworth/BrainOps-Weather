@@ -1301,4 +1301,16 @@
     <string name="brainops_action_login">BrainOps Login</string>
     <string name="brainops_action_sign_out">BrainOps Sign Out</string>
     <string name="interactive_radar">Interactive Radar</string>
+    <string name="brainops_card_title">Ops impact</string>
+    <string name="brainops_card_status_connected">Connected to tenant %1$s</string>
+    <string name="brainops_card_status_disconnected">Connect BrainOps to see job and crew impacts</string>
+    <string name="brainops_card_subtitle">Surface field ops risk and trigger actions without leaving weather</string>
+    <string name="brainops_card_radar_ready">Custom radar/tiles configured</string>
+    <string name="brainops_card_radar_missing">Using default radar tiles</string>
+    <string name="brainops_card_open_dashboard">Open Ops dashboard</string>
+    <string name="brainops_card_edit_settings">Edit BrainOps settings</string>
+    <string name="brainops_card_view_jobs">View jobs &amp; crews</string>
+    <string name="brainops_card_live">Live</string>
+    <string name="brainops_card_offline">Offline</string>
 </resources>
+

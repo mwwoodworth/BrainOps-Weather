@@ -60,6 +60,7 @@ class SettingsManager private constructor(
 
         const val DEFAULT_CARD_DISPLAY = "nowcast" +
             "&radar" +
+            "&brainops_impact" +
             "&daily_forecast" +
             "&hourly_forecast" +
             "&precipitation" +
