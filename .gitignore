@@ -1,52 +1,46 @@
-.gradle
-.kotlin
-build/
-!gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**/build/
-!**/src/test/**/build/
 
-### IntelliJ IDEA ###
-.idea/*
-!.idea/icon.png
-*.iws
-*.iml
-*.ipr
-out/
-!**/src/main/**/out/
-!**/src/test/**/out/
-
-### Eclipse ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-
-### VS Code ###
-.vscode/
-
-### Mac OS ###
-.DS_Store
-
-/currentPosition.properties
-/captures
-/local.properties
-# Release artifacts
 *.apk
 *.apk.idsig
-*.jks
+.apt_generated
+bin/
 brainops-release.jks
+build/
+/captures
+.classpath
+/currentPosition.properties
+/dist/
+.DS_Store
+### Eclipse ###
+.factorypath
+.gradle
+!gradle/wrapper/gradle-wrapper.jar
+.idea/*
+!.idea/icon.png
+*.iml
+### IntelliJ IDEA ###
+*.ipr
+*.iws
 *.jks
 KEYSTORE_PASSWORD.txt
+.kotlin
+/local.properties
+### Mac OS ###
+/nbbuild/
+/nbdist/
+/.nb-gradle/
+/nbproject/private/
+### NetBeans ###
+out/
+.project
+# Release artifacts
+.settings
+.springBeans
+!**/src/main/**/bin/
+!**/src/main/**/build/
+!**/src/main/**/out/
+!**/src/test/**/bin/
+!**/src/test/**/build/
+!**/src/test/**/out/
+.sts4-cache
+.vscode/
+### VS Code ###
