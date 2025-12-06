@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="28dp" />
+            <gradient
+                android:angle="135"
+                android:startColor="@color/brainops_gradient_start"
+                android:centerColor="@color/brainops_gradient_mid"
+                android:endColor="@color/brainops_gradient_end" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="28dp" />
+            <solid android:color="@color/brainops_surface_glass" />
+        </shape>
+    </item>
+</layer-list>

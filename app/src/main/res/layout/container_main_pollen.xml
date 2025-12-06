@@ -63,37 +63,42 @@
                 android:layout_height="wrap_content"
                 app:layout_constraintGuide_percent="0.6" />
 
-            <ImageView
-                android:id="@+id/title_icon"
-                android:gravity="start"
-                android:layout_width="20sp"
-                android:layout_height="20sp"
-                android:importantForAccessibility="no"
-                android:backgroundTint="?attr/colorSurfaceInverse"
-                android:src="@drawable/ic_allergy"
-                app:layout_constraintBottom_toBottomOf="@+id/title"
-                app:layout_constraintDimensionRatio="1:1"
-                app:layout_constraintStart_toStartOf="@+id/block_start_guideline"
-                app:layout_constraintTop_toTopOf="@+id/title" />
-
-            <TextView
-                android:id="@+id/title"
-                android:accessibilityHeading="true"
-                android:textAppearance="?attr/textAppearanceLabelLarge"
-                android:textColor="?attr/colorSurfaceInverse"
-                android:textSize="@dimen/title_text_size"
-                android:textStyle="bold"
-                android:ellipsize="end"
-                android:gravity="start"
+            <LinearLayout
+                android:id="@+id/pollen_header"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:maxLines="1"
-                android:textAlignment="viewStart"
-                android:text="@string/pollen"
-                android:layout_marginStart="4dp"
-                app:layout_constraintEnd_toEndOf="@+id/block_end_guideline"
-                app:layout_constraintStart_toEndOf="@+id/title_icon"
-                app:layout_constraintTop_toTopOf="@+id/block_top_guideline" />
+                android:orientation="horizontal"
+                android:padding="@dimen/large_margin"
+                android:background="@drawable/bg_overdrop_header"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="@+id/block_start_guideline"
+                app:layout_constraintEnd_toEndOf="@+id/block_end_guideline">
+
+                <ImageView
+                    android:id="@+id/title_icon"
+                    android:layout_width="20sp"
+                    android:layout_height="20sp"
+                    android:importantForAccessibility="no"
+                    android:tint="@color/md_theme_onSurface"
+                    android:src="@drawable/ic_allergy" />
+
+                <TextView
+                    android:id="@+id/title"
+                    android:accessibilityHeading="true"
+                    android:textAppearance="?attr/textAppearanceLabelLarge"
+                    android:textColor="@color/md_theme_onSurface"
+                    android:textSize="@dimen/title_text_size"
+                    android:textStyle="bold"
+                    android:ellipsize="end"
+                    android:gravity="start"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:maxLines="1"
+                    android:textAlignment="viewStart"
+                    android:text="@string/pollen"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1" />
+            </LinearLayout>
 
             <RelativeLayout
                 android:id="@+id/pollen_item_1"
