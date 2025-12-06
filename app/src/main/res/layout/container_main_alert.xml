@@ -3,12 +3,43 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/container_main_first_card_header"
     style="@style/OverdropCard"
-    android:backgroundTint="@color/alert_background"
     app:shapeAppearance="@style/ShapeAppearance.Material3.Corner.ExtraLarge">
 
-    <androidx.compose.ui.platform.ComposeView
-        android:id="@+id/container_main_first_card_alert_list"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/alert_header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_overdrop_header"
+            android:padding="@dimen/large_margin"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_warning"
+                android:tint="@color/md_theme_onSurface" />
+
+            <TextView
+                android:id="@+id/alert_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="@string/alert"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="@color/md_theme_onSurface" />
+        </LinearLayout>
+
+        <androidx.compose.ui.platform.ComposeView
+            android:id="@+id/container_main_first_card_alert_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingBottom="@dimen/normal_margin" />
+    </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>
