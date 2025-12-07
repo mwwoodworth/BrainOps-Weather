@@ -3,11 +3,11 @@ package org.breezyweather.background.weather
 import breezyweather.domain.location.model.Location
 import breezyweather.domain.weather.model.Base
 import breezyweather.domain.weather.model.Weather
-import org.junit.After
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import java.time.Instant
 import java.util.Date
 import java.util.TimeZone
@@ -16,13 +16,13 @@ class WeatherUpdateJobTest {
 
     private lateinit var originalTimeZone: TimeZone
 
-    @Before
+    @BeforeEach
     fun setUp() {
         originalTimeZone = TimeZone.getDefault()
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"))
     }
 
-    @After
+    @AfterEach
     fun tearDown() {
         TimeZone.setDefault(originalTimeZone)
     }

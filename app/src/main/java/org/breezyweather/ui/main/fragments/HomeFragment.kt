@@ -26,6 +26,8 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
@@ -81,6 +83,7 @@ class HomeFragment : MainModuleFragment() {
     private var scrollListener: OnScrollListener? = null
     private var recyclerViewAnimator: Animator? = null
     private var resourceProvider: ResourceProvider? = null
+    private var loadingShimmerAnimation: Animation? = null
 
     private val previewOffset = EqualtableLiveData(0)
     private var callback: Callback? = null
@@ -140,6 +143,8 @@ class HomeFragment : MainModuleFragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        binding.loadingShimmer.clearAnimation()
+        loadingShimmerAnimation = null
         adapter = null
         binding.recyclerView.clearOnScrollListeners()
         scrollListener = null
@@ -441,6 +446,7 @@ class HomeFragment : MainModuleFragment() {
         binding.refreshLayout.post {
             if (isFragmentViewCreated) {
                 binding.refreshLayout.isRefreshing = isRefreshing
+                updateLoadingState(isRefreshing)
                 binding.emptyText.visibility = if (isRefreshing) {
                     View.GONE
                 } else {
@@ -455,6 +461,27 @@ class HomeFragment : MainModuleFragment() {
                     }
                 }
             }
+        }
+    }
+
+    private fun updateLoadingState(isLoading: Boolean) {
+        if (!isFragmentViewCreated) {
+            return
+        }
+
+        binding.loadingScrim.visibility = if (isLoading) View.VISIBLE else View.GONE
+        binding.loadingState.visibility = if (isLoading) View.VISIBLE else View.GONE
+
+        if (isLoading) {
+            if (loadingShimmerAnimation == null) {
+                loadingShimmerAnimation = AnimationUtils.loadAnimation(
+                    binding.root.context,
+                    R.anim.shimmer_pulse
+                )
+            }
+            binding.loadingShimmer.startAnimation(loadingShimmerAnimation)
+        } else {
+            binding.loadingShimmer.clearAnimation()
         }
     }
 

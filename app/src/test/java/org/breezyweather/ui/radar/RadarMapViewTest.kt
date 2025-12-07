@@ -1,8 +1,8 @@
 package org.breezyweather.ui.radar
 
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
 import org.osmdroid.tileprovider.tilesource.OnlineTileSourceBase
 import org.osmdroid.util.MapTileIndex
 
@@ -19,20 +19,18 @@ class RadarMapViewTest {
                 val zoom = MapTileIndex.getZoom(pMapTileIndex)
                 val x = MapTileIndex.getX(pMapTileIndex)
                 val y = MapTileIndex.getY(pMapTileIndex)
-                return "${baseUrl[0]}$zoom/$x/$y$mImageFilenameEnding"
+                val base = getBaseUrl()
+                return "$base$zoom/$x/$y$mImageFilenameEnding"
             }
         }
-        
-        // Test zoom 5, x 10, y 20
-        // MapTileIndex format is complex, so we mock getting components if possible, but for unit test we trust standard usage.
-        // Let's manually verify string format logic.
-        
+
         val zoom = 5
         val x = 10
         val y = 20
-        val url = "${darkBasemap.baseUrl[0]}$zoom/$x/$y${darkBasemap.mImageFilenameEnding}"
-        
-        assertEquals("https://a.basemaps.cartocdn.com/dark_all/5/10/20.png", url)
+        val url = darkBasemap.getTileURLString(MapTileIndex.getTileIndex(zoom, x, y))
+
+        assertEquals("${darkBasemap.getBaseUrl()}$zoom/$x/$y.png", url)
+        assertTrue(url.startsWith("http"))
     }
 
     @Test

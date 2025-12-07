@@ -54,8 +54,8 @@ android {
 
     defaultConfig {
         applicationId = "org.breezyweather"
-        versionCode = 60032
-        versionName = "6.0.32"
+        versionCode = 60033
+        versionName = "6.0.33"
 
         buildConfigField("String", "COMMIT_COUNT", "\"${getCommitCount()}\"")
         buildConfigField("String", "COMMIT_SHA", "\"${getGitSha()}\"")
@@ -285,10 +285,9 @@ android {
     }
 
     testOptions {
-        unitTests {
-            isIncludeAndroidResources = true
-            unitTests.isReturnDefaultValues = true
-        }
+        unitTests.isIncludeAndroidResources = true
+        unitTests.isReturnDefaultValues = true
+        unitTests.all { it.useJUnitPlatform() }
     }
 }
 

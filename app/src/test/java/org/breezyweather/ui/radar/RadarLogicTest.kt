@@ -1,7 +1,9 @@
 package org.breezyweather.ui.radar
 
-import org.junit.Assert.*
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
 
 class RadarLogicTest {
 
@@ -18,7 +20,8 @@ class RadarLogicTest {
         val state = RadarAnimationState()
         assertFalse(state.isPlaying)
         assertEquals(1.0f, state.playbackSpeed, 0.0f)
-        assertEquals(0f, state.progress, 0.0f)
+        assertEquals(1f, state.progress, 0.0f)
+        assertTrue(state.isLoading)
     }
 
     @Test

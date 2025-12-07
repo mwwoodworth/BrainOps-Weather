@@ -88,6 +88,54 @@
                 app:dotGap="8dp"
                 app:animationDuration="300" />
 
+            <!-- Glassy loading overlay for quick feedback while weather sync is running -->
+            <View
+                android:id="@+id/loading_scrim"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clickable="true"
+                android:background="@color/brainops_surface_glass"
+                android:alpha="0.75"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/loading_state"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clickable="true"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="@dimen/large_margin"
+                android:visibility="gone">
+
+                <View
+                    android:id="@+id/loading_shimmer"
+                    android:layout_width="220dp"
+                    android:layout_height="120dp"
+                    android:background="@drawable/bg_overdrop_header"
+                    android:alpha="0.9"
+                    android:padding="@dimen/large_margin"
+                    android:elevation="4dp" />
+
+                <TextView
+                    android:id="@+id/loading_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/large_margin"
+                    android:text="@string/action_pull_down_to_refresh"
+                    android:textAppearance="?attr/textAppearanceTitleLarge"
+                    android:textColor="@color/md_theme_onSurface" />
+
+                <TextView
+                    android:id="@+id/loading_subtitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/small_margin"
+                    android:text="@string/loading"
+                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                    android:textColor="@color/md_theme_onSurfaceVariant" />
+            </LinearLayout>
+
         </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
     </LinearLayout>
